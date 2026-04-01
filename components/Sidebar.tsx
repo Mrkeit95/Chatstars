@@ -33,6 +33,8 @@ const NAV = [
     { href: "/clients", label: "Clients", icon: "users" },
     { href: "/billing", label: "Billing", icon: "card" },
     { href: "/offboarded", label: "Offboarded", icon: "userX" },
+    { href: "/mass-messages", label: "Mass Messages", icon: "msg" },
+    { href: "/queue-manager", label: "Queue Tracker", icon: "bar" },
   ]},
   { group: "Management", items: [
     { href: "/team/general-manager", label: "General Manager", icon: "star" },

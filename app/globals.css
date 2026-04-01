@@ -11,3 +11,5 @@ body { font-family: 'Inter', system-ui, sans-serif; background: #0c0a09; color: 
 
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 .animate-pulse-slow { animation: pulse 2s infinite; }
+
+.line-clamp-6 { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
