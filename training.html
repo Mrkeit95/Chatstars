@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Training - Chat Stars</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="nav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><div class="nav-logo-text">CHATSTARS</div></a>
+    <ul class="nav-links">
+      <li><a href="index.html#about-us">About</a></li>
+      <li><a href="training.html">Training</a></li>
+      <li><a href="academy/" class="nav-cta" style="background:linear-gradient(135deg,#6366f1,#ec4899);border:none">🎓 Academy</a></li>
+      <li><a href="index.html#services">What We Offer</a></li>
+      <li><a href="index.html#faq">FAQ</a></li>
+      <li><a href="apply.html" class="nav-cta">Apply now!</a></li>
+    </ul>
+    <button class="mobile-menu-btn" onclick="document.getElementById('mobileNav').classList.add('open')"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="mobile-nav" id="mobileNav">
+  <button class="mobile-nav-close" onclick="this.parentElement.classList.remove('open')">&times;</button>
+  <a href="index.html#about-us" onclick="this.parentElement.classList.remove('open')">About</a>
+  <a href="training.html" onclick="this.parentElement.classList.remove('open')">Training</a>
+  <a href="index.html#services" onclick="this.parentElement.classList.remove('open')">What We Offer</a>
+  <a href="index.html#faq" onclick="this.parentElement.classList.remove('open')">FAQ</a>
+  <a href="apply.html" class="btn-primary" onclick="this.parentElement.classList.remove('open')">Apply now!</a>
+</div>
+
+<div class="page-hero">
+  <div class="container" style="position:relative;z-index:1;">
+    <div class="section-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      Training
+    </div>
+    <h1 class="section-title" style="font-size:clamp(2rem,4.5vw,2.8rem);">Learn the Chat Stars Method</h1>
+    <p class="section-desc" style="margin:0 auto;">Already have chatting experience? Jump straight to the PPV Training section.<br>Starting fresh? Begin with the basics below and work your way through.</p>
+  </div>
+</div>
+
+<section id="training">
+  <div class="container">
+    <div class="training-notice reveal" style="max-width:700px;margin:0 auto 48px;">
+      ⚠️ Heads up — we have a specific writing style that we expect all chatters to follow. Your application needs to reflect what you learn in the PPV Training videos, or it won't be accepted.
+    </div>
+
+    <div class="reveal">
+      <div class="training-section-label">
+        <div class="label-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+        <div>
+          <h3>The Basics — Start Here If You're New</h3>
+          <p>These videos cover the fundamentals of chatting and how the industry works</p>
+        </div>
+      </div>
+    </div>
+    <div class="video-grid">
+      <div class="video-card reveal">
+        <div class="video-card-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+          <span>Video hosted externally</span>
+        </div>
+        <div class="video-card-info"><div class="video-num">Video 1</div><h4>What Does a Chatter Actually Do?</h4><p>A breakdown of the role, the industry, and how Chat Stars operates day to day.</p></div>
+      </div>
+      <div class="video-card reveal">
+        <div class="video-card-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+          <span>Video hosted externally</span>
+        </div>
+        <div class="video-card-info"><div class="video-num">Video 2</div><h4>Navigating the Platform</h4><p>Get familiar with the tools and interface you'll be using on every shift.</p></div>
+      </div>
+      <div class="video-card reveal">
+        <div class="video-card-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+          <span>Video hosted externally</span>
+        </div>
+        <div class="video-card-info"><div class="video-num">Video 3</div><h4>How to Keep Subscribers Engaged</h4><p>Learn the conversation flow that keeps fans coming back and spending more.</p></div>
+      </div>
+      <div class="video-card reveal">
+        <video controls preload="metadata">
+          <source src="https://cdn.discordapp.com/attachments/1429314664717615107/1429315563762749460/OF_FOURTH.mp4?ex=6912b259&is=691160d9&hm=b31aba2806c4169c65ac9665f7cef35c88e632bdd1c8af3687e5b7955ec01c95&" type="video/mp4">
+        </video>
+        <div class="video-card-info"><div class="video-num">Video 4</div><h4>Levelling Up Your Chat Game</h4><p>Advanced tactics for handling different subscriber types and maximising revenue.</p></div>
+      </div>
+    </div>
+
+    <div class="reveal">
+      <div class="training-section-label">
+        <div class="label-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div>
+          <h3>PPV Writing Training — Required Before Applying</h3>
+          <p>This two-part series teaches the exact writing style your application will be judged on</p>
+        </div>
+      </div>
+    </div>
+    <div class="video-grid">
+      <div class="video-card reveal">
+        <div class="video-card-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+          <span>Video hosted externally</span>
+        </div>
+        <div class="video-card-info"><div class="video-num">PPV Part 1</div><h4>The Chat Stars Writing Style</h4><p>Understand the tone, structure, and approach we use for every PPV message.</p></div>
+      </div>
+      <div class="video-card reveal">
+        <div class="video-card-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+          <span>Video hosted externally</span>
+        </div>
+        <div class="video-card-info"><div class="video-num">PPV Part 2</div><h4>Closing Techniques That Convert</h4><p>The frameworks and strategies that separate average chatters from top earners.</p></div>
+      </div>
+    </div>
+
+    <div class="training-cta-box reveal">
+      <h3>Finished the Training?</h3>
+      <p>If you've watched the videos and you're ready, head over to the application page and take the next step.</p>
+      <a href="apply.html" class="btn-primary">Apply now! <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer"><div class="container"><p>&copy; Chat Stars. All rights reserved.</p></div></footer>
+
+<script>
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => { navbar.classList.toggle('scrolled', window.scrollY > 40); });
+const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); }); }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
