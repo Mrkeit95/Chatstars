@@ -1019,29 +1019,46 @@ async function syncChatterData(){
     const h=rows[hdr];
     const col=(name)=>h.findIndex(c=>c.includes(name));
     const iName=col('Chatter Name'),iStatus=col('Status'),iTeam=col('Team');
+    const iShift=col('Shift');
     const i14=col('1 to 14'),i15=col('15 to End'),iTot=col('Total Month');
+    const iGoal=col('Goal')>=0?col('Goal'):col('Target');
+    const iSales=col('Sale Count')>=0?col('Sale Count'):col('Sales');
     
     if(iName<0||iTot<0)return false;
     
-    let updated=0;
+    // Build fresh data from sheet, preserving daily arrays from old D
+    const oldMap={};
+    D.forEach(c=>{oldMap[c.n]=c});
+    
+    const freshD=[];
+    let id=1;
     for(let i=hdr+1;i<rows.length;i++){
-      const r=rows[i];const name=r[iName];
+      const r=rows[i];const name=(r[iName]||'').trim();
       if(!name||name.length<2)continue;
-      const chatter=D.find(c=>c.n===name);
-      if(chatter){
-        const newTot=parseNum(r[iTot]);
-        const newF14=i14>=0?parseNum(r[i14]):chatter.f14;
-        const newL15=i15>=0?parseNum(r[i15]):chatter.l15;
-        const newSt=iStatus>=0&&r[iStatus]?r[iStatus]:chatter.st;
-        const newTeam=iTeam>=0&&r[iTeam]?r[iTeam]:chatter.team;
-        if(newTot>0){
-          chatter.tot=newTot;chatter.f14=newF14;chatter.l15=newL15;
-          chatter.st=newSt;chatter.team=newTeam;
-          updated++;
-        }
-      }
+      const tot=parseNum(r[iTot]);
+      const old=oldMap[name]||{};
+      freshD.push({
+        id:id++,
+        n:name,
+        st:iStatus>=0&&r[iStatus]?r[iStatus].trim():(old.st||'Active'),
+        team:iTeam>=0&&r[iTeam]?r[iTeam].trim():(old.team||''),
+        shift:iShift>=0&&r[iShift]?r[iShift].trim():(old.shift||''),
+        goal:iGoal>=0?parseNum(r[iGoal]):(old.goal||0),
+        f14:i14>=0?parseNum(r[i14]):(old.f14||0),
+        l15:i15>=0?parseNum(r[i15]):(old.l15||0),
+        tot:tot,
+        sales:iSales>=0?parseInt(r[iSales])||0:(old.sales||0),
+        daily:old.daily||[]
+      });
     }
-    if(updated>0){enrich();return true}
+    
+    if(freshD.length>=5){
+      D.length=0;
+      freshD.forEach(c=>D.push(c));
+      enrich();
+      console.log('[Slushy] Full sync: '+D.length+' chatters from sheet');
+      return true;
+    }
     return false;
   }catch(e){console.log('Chatter sync error:',e.message);return false}
 }
