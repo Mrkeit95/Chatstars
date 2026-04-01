@@ -380,7 +380,7 @@ function showPanel(c){
 }
 
 // RENDER ALL
-function renderAll(){renderDash();renderRev();renderBoards();renderClients();renderBilling();renderOffboarded();renderNotif();renderTasks();renderCal()}
+function renderAll(){[renderDash,renderRev,renderBoards,renderClients,renderBilling,renderOffboarded,renderNotif,renderTasks,renderCal].forEach(fn=>{try{fn()}catch(e){console.error(fn.name+' error:',e)}})}
 
 // DASHBOARD
 function renderDash(){
@@ -420,6 +420,7 @@ function renderDash(){
   $('dPipeline').innerHTML='<div class="pipe-head"><div class="pipe-title">Revenue Pipeline</div><div class="pipe-live"><span style="font-size:20px;font-weight:800">'+fmt(tRun)+'</span><span class="pipe-dot"></span><small>Live</small></div></div><svg class="chart-svg" viewBox="0 0 '+chartW+' '+chartH+'">'+gridLines+'<polyline fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linejoin="round" points="'+pts.join(' ')+'"/>'+dots+xLabels+'</svg>';
 
   // Board Cards
+  const bds=boards();
   const boardOrder=['Board 1','Board 2','Board 3','Training Board'];
   $('dBoards').innerHTML=boardOrder.map(n=>{const b=bds[n];if(!b)return'';const p=pct(b.run,b.goal);return'<div class="bcard" data-board="'+n+'"><div class="bcard-name">'+n+'</div><div class="bcard-pct" style="color:'+(BC[n]||'var(--green)')+'">'+p+'%</div><div class="bcard-rev">'+fmt(b.run)+' / '+fmt(b.goal)+'</div><div class="bcard-bar"><div class="bcard-fill" style="width:'+Math.min(p,100)+'%;background:'+(BC[n]||'var(--green)')+'"></div></div><div class="bcard-meta"><span>Creators <b>'+b.cr.length+'</b></span><span>Active <b>'+b.act+'</b></span></div></div>'}).join('');
 
