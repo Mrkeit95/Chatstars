@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Creator } from "@/lib/types";
-import { fetchCreators, getActiveCreators, getBoards, getDailyTotals, getCurrentMonth, getMonthLabel, fmt, fmtFull, pct, colorFor } from "@/lib/data";
+import { fetchCreators, getActiveCreators, getBoards, getDailyTotals, getCurrentMonth, fmt, fmtFull, pct, colorFor } from "@/lib/data";
 import PipelineChart from "@/components/PipelineChart";
 import CreatorPanel from "@/components/CreatorPanel";
 
@@ -14,6 +14,8 @@ export default function RevenuePage() {
   const [selected, setSelected] = useState<Creator|null>(null);
   const [search, setSearch] = useState("");
   const [boardFilter, setBoardFilter] = useState("all");
+  // Previous month totals fetched from their actual tabs
+  const [prevTotals, setPrevTotals] = useState<Record<string,number>>({});
 
   const curIdx = new Date().getMonth();
   const currentMonth = MONTHS[curIdx];
@@ -24,18 +26,30 @@ export default function RevenuePage() {
     fetchCreators(month).then(setD);
   }, [tab]);
 
+  // Fetch previous month totals from their actual tabs
+  useEffect(() => {
+    async function loadPrevTotals() {
+      const totals: Record<string,number> = {};
+      for (const m of prevMonths) {
+        try {
+          const creators = await fetchCreators(m);
+          totals[m] = creators.reduce((a,c) => a + c.run, 0);
+        } catch { totals[m] = 0; }
+      }
+      setPrevTotals(totals);
+    }
+    loadPrevTotals();
+  }, []);
+
   if (!D.length) return <div className="text-[#78716c] text-center py-20">Loading {tab === "current" ? currentMonth : tab} data...</div>;
 
+  const tRun = D.reduce((a,c) => a+c.run, 0);
   const active = getActiveCreators(D);
-  const tRun = D.reduce((a,c) => a+c.run, 0); // Include all for total revenue
   const tGoal = active.reduce((a,c) => a+c.goal, 0);
-  const tFeb = D.reduce((a,c) => a+c.feb, 0);
-  const tJan = D.reduce((a,c) => a+c.jan, 0);
-  const tDec = D.reduce((a,c) => a+c.dec, 0);
   const dt = getDailyTotals(D);
   const boards = getBoards(D);
   const activeDays = dt.filter(v => v > 0).length;
-  const projEOM = activeDays > 0 ? (tRun / activeDays) * 31 : tRun;
+  const projEOM = activeDays > 0 ? (tRun / activeDays) * new Date(2026, curIdx + 1, 0).getDate() : tRun;
 
   const isCurrentTab = tab === "current";
   const tabLabel = isCurrentTab ? SHORT[curIdx] : SHORT[MONTHS.indexOf(tab)];
@@ -50,7 +64,6 @@ export default function RevenuePage() {
     <>
       <div className="mb-7"><h1 className="text-[26px] font-extrabold tracking-tight">Revenue Tracker</h1><p className="text-[13px] text-[#78716c] mt-1">2026 REV TRACKER — Stellar OPS</p></div>
 
-      {/* Month Tabs */}
       <div className="flex gap-0.5 mb-6 bg-[#1a1714] border border-white/[0.06] rounded-xl p-1 w-fit">
         <button onClick={() => setTab("current")} className={`px-4 py-2 rounded-lg text-xs font-semibold transition ${tab === "current" ? "bg-white/[0.08] text-white" : "text-[#78716c] hover:text-white"}`}>Dashboard</button>
         {[currentMonth, ...prevMonths].map(m => (
@@ -60,7 +73,6 @@ export default function RevenuePage() {
 
       {isCurrentTab ? (
         <>
-          {/* KPIs */}
           <div className="grid grid-cols-4 gap-3.5 mb-7">
             <div className="p-5 rounded-xl bg-[#1a1714] border border-white/[0.06]">
               <div className="text-[10.5px] font-semibold text-[#78716c] uppercase tracking-wider mb-2.5">{SHORT[curIdx]} Running</div>
@@ -69,9 +81,15 @@ export default function RevenuePage() {
               <div className="h-1 rounded bg-white/[0.06] mt-2 overflow-hidden"><div className="h-full rounded bg-[#4ade80]" style={{width: Math.min(pct(tRun,tGoal),100)+"%"}} /></div>
               <div className="text-xs text-[#57534e] mt-2">Projected EOM <b className="text-[#a8a29e]">{fmt(projEOM)}</b></div>
             </div>
-            <div className="p-5 rounded-xl bg-[#1a1714] border border-white/[0.06]"><div className="text-[10.5px] font-semibold text-[#78716c] uppercase tracking-wider mb-2.5">{SHORT[curIdx-1] || "Prev"}</div><div className="text-[28px] font-extrabold text-[#60a5fa] leading-none">{fmt(tFeb)}</div></div>
-            <div className="p-5 rounded-xl bg-[#1a1714] border border-white/[0.06]"><div className="text-[10.5px] font-semibold text-[#78716c] uppercase tracking-wider mb-2.5">{SHORT[curIdx-2] || "Prev"}</div><div className="text-[28px] font-extrabold text-[#22d3ee] leading-none">{fmt(tJan)}</div></div>
-            <div className="p-5 rounded-xl bg-[#1a1714] border border-white/[0.06]"><div className="text-[10.5px] font-semibold text-[#78716c] uppercase tracking-wider mb-2.5">{SHORT[curIdx-3] || "Prev"}</div><div className="text-[28px] font-extrabold leading-none">{fmt(tDec)}</div></div>
+            {prevMonths.map((m, i) => (
+              <div key={m} className="p-5 rounded-xl bg-[#1a1714] border border-white/[0.06] cursor-pointer hover:border-white/[0.12] transition" onClick={() => setTab(m)}>
+                <div className="text-[10.5px] font-semibold text-[#78716c] uppercase tracking-wider mb-2.5">{SHORT[MONTHS.indexOf(m)]}</div>
+                <div className="text-[28px] font-extrabold leading-none" style={{color: i === 0 ? "#60a5fa" : i === 1 ? "#22d3ee" : "#a8a29e"}}>
+                  {prevTotals[m] !== undefined ? fmt(prevTotals[m]) : "Loading..."}
+                </div>
+                <div className="text-[9px] text-[#57534e] mt-2">Click for details →</div>
+              </div>
+            ))}
           </div>
           <PipelineChart dailyTotals={dt} total={tRun} />
           <div className="mt-7">
@@ -89,7 +107,7 @@ export default function RevenuePage() {
         <>
           <div className="grid grid-cols-3 gap-3.5 mb-6">
             <div className="p-5 rounded-xl bg-[#1a1714] border border-white/[0.06]"><div className="text-[10.5px] font-semibold text-[#78716c] uppercase tracking-wider mb-2">{tabLabel} Revenue</div><div className="text-[28px] font-extrabold text-[#4ade80]">{fmtFull(tRun)}</div></div>
-            <div className="p-5 rounded-xl bg-[#1a1714] border border-white/[0.06]"><div className="text-[10.5px] font-semibold text-[#78716c] uppercase tracking-wider mb-2">Creators</div><div className="text-[28px] font-extrabold">{active.length}</div></div>
+            <div className="p-5 rounded-xl bg-[#1a1714] border border-white/[0.06]"><div className="text-[10.5px] font-semibold text-[#78716c] uppercase tracking-wider mb-2">Creators</div><div className="text-[28px] font-extrabold">{D.length}</div><div className="text-xs text-[#57534e] mt-1">{active.length} active · {D.length - active.length} offboarded</div></div>
             <div className="p-5 rounded-xl bg-[#1a1714] border border-white/[0.06]"><div className="text-[10.5px] font-semibold text-[#78716c] uppercase tracking-wider mb-2">% to Goal</div><div className="text-[28px] font-extrabold" style={{color: colorFor(pct(tRun,tGoal))}}>{pct(tRun,tGoal)}%</div></div>
           </div>
           <PipelineChart dailyTotals={dt} total={tRun} />
@@ -98,6 +116,7 @@ export default function RevenuePage() {
             <select value={boardFilter} onChange={e => setBoardFilter(e.target.value)} className="bg-[#1a1714] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none">
               <option value="all">All Boards</option><option>Board 1</option><option>Board 2</option><option>Board 3</option><option>Training Board</option>
             </select>
+            <div className="ml-auto text-xs text-[#57534e] self-center">{filtered.length} creators</div>
           </div>
           <div className="bg-[#1a1714] border border-white/[0.06] rounded-xl overflow-hidden">
             <table className="w-full text-sm"><thead><tr className="text-[10px] text-[#57534e] uppercase tracking-wider">

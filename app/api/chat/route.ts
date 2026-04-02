@@ -123,36 +123,44 @@ async function getInflowwSummary(): Promise<string> {
   if (!apiKey || !oid) return "Infloww not connected.";
   const headers = { "Accept": "application/json", "Authorization": apiKey, "x-oid": oid };
   try {
-    const [cRes, tRes, lRes, rRes] = await Promise.all([
-      fetch("https://openapi.infloww.com/v1/creators?limit=100", { headers }).then(r => r.json()).catch(() => null),
-      fetch(`https://openapi.infloww.com/v1/transactions?limit=100&startTime=${Date.now() - 30*24*60*60*1000}&endTime=${Date.now()}`, { headers }).then(r => r.json()).catch(() => null),
-      fetch("https://openapi.infloww.com/v1/links?limit=50", { headers }).then(r => r.json()).catch(() => null),
-      fetch(`https://openapi.infloww.com/v1/refunds?limit=100&startTime=${Date.now() - 30*24*60*60*1000}&endTime=${Date.now()}`, { headers }).then(r => r.json()).catch(() => null),
-    ]);
-    const creators = cRes?.data?.list || [];
-    const txns = tRes?.data?.list || [];
-    const links = lRes?.data?.list || [];
-    const refunds = rRes?.data?.list || [];
-    const totalGross = txns.reduce((a: number, t: any) => a + (parseFloat(t.amount) || 0), 0);
-    const totalNet = txns.reduce((a: number, t: any) => a + (parseFloat(t.net) || 0), 0);
-    const totalFees = txns.reduce((a: number, t: any) => a + (parseFloat(t.fee) || 0), 0);
-    const totalRefunds = refunds.reduce((a: number, r: any) => a + (r.paymentAmount || 0), 0);
+    // Fetch creators
+    const cRes = await fetch("https://openapi.infloww.com/v1/creators?limit=100", { headers });
+    if (!cRes.ok) return "Infloww API error: " + cRes.status;
+    const cData = await cRes.json();
+    const creators = cData?.data?.list || [];
+    
+    // Fetch transactions for top 10 creators (to stay within rate limits)
+    const topCreators = creators.slice(0, 10);
+    const startTime = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const endTime = Date.now();
+    let allTxns: any[] = [];
+    
+    for (const c of topCreators) {
+      try {
+        const tRes = await fetch(
+          `https://openapi.infloww.com/v1/transactions?creatorId=${c.id}&limit=50&startTime=${startTime}&endTime=${endTime}`,
+          { headers }
+        );
+        if (tRes.ok) {
+          const tData = await tRes.json();
+          const txns = (tData?.data?.list || []).map((t: any) => ({ ...t, creatorName: c.name || c.userName }));
+          allTxns = allTxns.concat(txns);
+        }
+      } catch {}
+    }
+    
+    const totalGross = allTxns.reduce((a: number, t: any) => a + (parseFloat(t.amount) || 0), 0);
+    const totalNet = allTxns.reduce((a: number, t: any) => a + (parseFloat(t.net) || 0), 0);
     const byType: Record<string, number> = {};
-    txns.forEach((t: any) => { byType[t.type || "Unknown"] = (byType[t.type || "Unknown"] || 0) + (parseFloat(t.net) || 0); });
-    const linkEarnings = links.reduce((a: number, l: any) => a + (l.earningsNet || 0), 0) / 100;
-    const linkSubs = links.reduce((a: number, l: any) => a + (l.subCount || 0), 0);
-    return `INFLOWW LIVE DATA:
+    allTxns.forEach((t: any) => { byType[t.type || "Unknown"] = (byType[t.type || "Unknown"] || 0) + (parseFloat(t.net) || 0); });
+    
+    return `INFLOWW LIVE DATA (last 30 days, top 10 creators):
 Connected creators: ${creators.length}
-${creators.map((c: any) => `- ${c.name || c.userName} (@${c.userName})`).join("\n")}
+${creators.slice(0, 20).map((c: any) => "- " + (c.name || c.userName) + " (@" + c.userName + ")").join("\n")}
 
-Transactions (last ${txns.length}):
-Gross: $${Math.round(totalGross).toLocaleString()} | Net: $${Math.round(totalNet).toLocaleString()} | Fees: $${Math.round(totalFees).toLocaleString()}
-Revenue by type: ${Object.entries(byType).map(([t, v]) => `${t}: $${Math.round(v).toLocaleString()}`).join(", ")}
-
-Refunds: ${refunds.length} totaling $${Math.round(totalRefunds).toLocaleString()}
-
-Marketing Links: ${links.length} links, ${linkSubs} subscribers, $${Math.round(linkEarnings).toLocaleString()} net earnings
-Active campaigns: ${links.filter((l: any) => !l.finishedFlag).length}`;
+Transactions (${allTxns.length} from top 10):
+Gross: $${Math.round(totalGross).toLocaleString()} | Net: $${Math.round(totalNet).toLocaleString()}
+By type: ${Object.entries(byType).map(([t, v]) => t + ": $" + Math.round(v).toLocaleString()).join(", ")}`;
   } catch (e) { return "Infloww data fetch error."; }
 }
 

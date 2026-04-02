@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { getICreators, getITxns, getIRefunds, getILinks, getILinkFans, ITxn, ICreator, ILink, IRefund } from "@/lib/infloww";
+import { fetchAllInflowwData, getILinkFans, ITxn, ICreator, ILink, IRefund } from "@/lib/infloww";
 
 const $ = (v:number) => "$"+Math.abs(v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 const $k = (v:number) => v >= 10000 ? "$"+(v/1000).toFixed(1)+"K" : $(v);
@@ -43,14 +43,9 @@ export default function Page() {
   async function loadData(d:number) {
     setLoading(true); setErr("");
     try {
-      const [c,t,l,r] = await Promise.all([
-        getICreators().catch(()=>[]),
-        getITxns(d).catch(()=>[]),
-        getILinks().catch(()=>[]),
-        getIRefunds(d).catch(()=>[]),
-      ]);
-      setC(c); setT(t); setL(l); setR(r);
-      if(!c.length&&!t.length) setErr("No data returned. Verify INFLOWW_API_KEY and INFLOWW_OID in Vercel.");
+      const data = await fetchAllInflowwData(d);
+      setC(data.creators); setT(data.transactions); setL(data.links); setR(data.refunds);
+      if(!data.creators.length&&!data.transactions.length) setErr("No data returned. Verify INFLOWW_API_KEY and INFLOWW_OID in Vercel.");
     } catch(e:any) { setErr(e.message); }
     setLoading(false);
   }
@@ -112,7 +107,7 @@ export default function Page() {
   const feeRate = tGross > 0 ? (tFees / tGross * 100) : 0;
   const refundRate = tGross > 0 ? (tRefAmt / tGross * 100) : 0;
 
-  if(loading) return <div className="text-center py-20"><div className="inline-block w-8 h-8 border-2 border-white/10 border-t-[#4ade80] rounded-full animate-spin mb-3"/><div className="text-[#78716c] text-sm">Loading Infloww data ({days}d)...</div><div className="text-[10px] text-[#57534e] mt-1">Fetching creators, transactions, links, refunds...</div></div>;
+  if(loading) return <div className="text-center py-20"><div className="inline-block w-8 h-8 border-2 border-white/10 border-t-[#4ade80] rounded-full animate-spin mb-3"/><div className="text-[#78716c] text-sm">Loading Infloww data ({days}d)...</div><div className="text-[10px] text-[#57534e] mt-1">Fetching data for all creators (this may take 30-60s)...</div></div>;
 
   return (<>
     <div className="flex items-start justify-between mb-6">
