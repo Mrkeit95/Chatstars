@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chatstars — Training Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script>
+window.storage={
+  async get(k,s){try{const p=s?'shared:':'local:';const v=localStorage.getItem(p+k);if(!v)throw new Error('not found');return{key:k,value:v,shared:!!s}}catch(e){throw e}},
+  async set(k,v,s){try{const p=s?'shared:':'local:';localStorage.setItem(p+k,v);return{key:k,value:v,shared:!!s}}catch(e){return null}},
+  async delete(k,s){try{const p=s?'shared:':'local:';localStorage.removeItem(p+k);return{key:k,deleted:true,shared:!!s}}catch(e){return null}},
+  async list(pre,s){try{const p=s?'shared:':'local:';const keys=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k.startsWith(p+(pre||'')))keys.push(k.replace(p,''))}return{keys,prefix:pre,shared:!!s}}catch(e){return{keys:[]}}}
+};
+</script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ─── ADMIN CONFIG ────────────────────────────────────────────────────────────
+const ADMINS = ["keit dmitrijev", "keit", "zein", "alex", "angelica", "alex bakalov"];
+const isAdminUser = (name) => ADMINS.includes(name?.toLowerCase?.().trim());
+
+// ─── TRAINING DATA FROM NOTION ───────────────────────────────────────────────
+const TRAINING_DATA = {
+  welcome: {
+    title: "Welcome to Training",
+    icon: "📚",
+    videoUrl: "https://drive.google.com/file/d/1VwGR502Qs86hDaugNpT-IWA4s0rKMxqH/preview",
+    content: `This training is not designed to be easy, comfortable, or casual. It is designed to prepare you for real responsibility, real performance expectations, and real outcomes.\n\nThis is where fundamentals are built properly. Communication, judgment, consistency, and discipline are non-negotiable in this role.\n\nThis training is also a selection process. Not everyone who starts will finish — and that is intentional.\n\nIf you approach this seriously, the skills you develop here can open doors well beyond this role.`
+  },
+  days: [
+    {
+      id: "day1", title: "Day 1", subtitle: "LANGUAGE, COMPREHENSION & FOUNDATION GATE", icon: "📔", color: "#6366f1",
+      videoUrl: "https://drive.google.com/file/d/1sD4g0GGtwYYD6K4KVgj98GnklQMCYfOH/preview",
+      description: "Day 1 sets the baseline standard required to continue in this training program. This day exists to assess the core skills that are non-negotiable for this role: language proficiency, comprehension, attention to detail, and professional communication.",
+      isGateDay: true,
+      modules: [
+        { id: "d1m1", title: "English & Comprehension Gate", duration: "3 Hours", type: "exercise",
+          content: `This exercise is designed to quickly identify candidates whose English, sentence structure, or natural flow is not strong enough to represent American creators.\n\nThis is not a sales test. This is not about being creative. It is purely about whether written English feels natural, clear, and conversational.\n\nYou will respond to the following prompts as if you were having a normal, everyday conversation. Write 2–4 full sentences per answer. Use clear, correct English. Write in complete sentences. Do not use emojis, slang, or bullet points.`,
+          exercises: [
+            { prompt: "Walk us through a normal day in your life.", hint: "From when you wake up to when you go to sleep — include work, habits, routines." },
+            { prompt: "What do you enjoy doing outside of work?", hint: "Hobbies, interests, sports, online activities." },
+            { prompt: "What does your ideal life look like in 3–5 years?", hint: "Career goals, lifestyle, location, income, or personal growth." },
+            { prompt: "What motivates you to work hard when no one is watching?", hint: "Describe what pushes you to stay consistent and disciplined." },
+            { prompt: "Tell us about something you're genuinely proud of.", hint: "Personal, small, or something you worked hard for." }
+          ],
+          quiz: [
+            { q: "How many sentences should each response contain?", options: ["1 sentence", "2–4 full sentences", "5–10 sentences", "As many as possible"], answer: 1 },
+            { q: "What should you NOT use in your responses?", options: ["Complete sentences", "Clear English", "Emojis, slang, or bullet points", "Correct grammar"], answer: 2 },
+            { q: "What is this exercise primarily testing?", options: ["Sales ability", "Creative writing", "Natural English fluency", "Speed of typing"], answer: 2 }
+          ]
+        },
+        { id: "d1m1b", title: "Rewrite Bad English", duration: "40 min", type: "exercise",
+          content: `This exercise tests whether you can recognize incorrect English sentence structure and rewrite it into clear, natural, grammatically correct English.\n\nKeep the original meaning. Write complete sentences. Do not make the sentence overly formal. Do not add extra information.`,
+          exercises: [
+            { prompt: `Rewrite: "I wait long time already for your reply and still no answer."`, hint: "Fix grammar while keeping original meaning." },
+            { prompt: `Rewrite: "Why you not answer me yesterday when I message you?"`, hint: "Fix grammar while keeping original meaning." },
+            { prompt: `Rewrite: "I am not understand what you are trying to say here."`, hint: "Fix grammar while keeping original meaning." },
+            { prompt: `Rewrite: "Please can you explain this more clear because I don't get it."`, hint: "Fix grammar while keeping original meaning." },
+            { prompt: `Rewrite: "I try contact you many times already but you not reply."`, hint: "Fix grammar while keeping original meaning." }
+          ],
+          quiz: [
+            { q: "When rewriting, what must you preserve?", options: ["The exact words", "The original meaning", "The ESL structure", "The formality level"], answer: 1 },
+            { q: "A rewritten sentence fails if it:", options: ["Sounds natural", "Has correct grammar", "Still sounds translated or awkward", "Is shorter than original"], answer: 2 }
+          ]
+        },
+        { id: "d1m2", title: "Employee Handbook", duration: "45 min", type: "reading",
+          content: `The Employee Handbook covers all company policies and procedures for Stellar Ops.\n\n• Organizational Hierarchy — from CEO's down to Chatters.\n• Company Values — Creativity, Adaptability, Integrity, Collaboration, Accountability, Data Privacy, Transparency.\n• Working Hours — Five shifts per week: 3×8-hour shifts + 2×12-hour shifts, with 2 days off.\n• Pay Structure — Tier 1: $2/hr + 3%. Tier 2: $2.50/hr + 3%. Tier 3: $3/hr + 3%.\n• Minimum Monthly Sales — Tier 1: $5,000. Tier 2: $7,500. Tier 3: $10,000.\n• Strike System — Strike 1: Warning. Strike 2: Second offense. Strike 3: Termination.\n• Zero Tolerance Policy — Immediate termination for Hubstaff manipulation, sharing credentials, redirecting fans, stealing, poaching, sharing confidential info.\n• Confidentiality — All information is strictly confidential indefinitely.`,
+          quiz: [
+            { q: "How many shifts per week are chatters assigned?", options: ["3 shifts", "4 shifts", "5 shifts", "6 shifts"], answer: 2 },
+            { q: "What is the Tier 1 minimum monthly sales requirement?", options: ["$2,500", "$5,000", "$7,500", "$10,000"], answer: 1 },
+            { q: "How many strikes before termination?", options: ["1", "2", "3", "4"], answer: 2 },
+            { q: "What is the Tier 1 hourly pay rate?", options: ["$1/hr + 3%", "$2/hr + 3%", "$3/hr + 3%", "$2.50/hr + 3%"], answer: 1 },
+            { q: "When are pay periods?", options: ["1st and 15th", "5th and 20th", "10th and 25th", "Weekly"], answer: 1 },
+            { q: "Which of these is a Zero Tolerance offense?", options: ["Being 5 minutes late", "Hubstaff manipulation", "Missing one debrief", "Low sales"], answer: 1 },
+            { q: "How long does confidentiality last after termination?", options: ["6 months", "1 year", "5 years", "Indefinitely"], answer: 3 }
+          ]
+        },
+        { id: "d1m3", title: "SOP + Chatter Manual", duration: "1 Hour", type: "reading",
+          content: `Shift Prep: Be ready 10 min before. Join Discord, start Hubstaff, open Monday.com, Infloww CRM, Grammarly.\n\nDuring Shift: Maintain active chats, follow Mass Message/Bump schedules, stay in character. Pacing: Hook → Engage → Tease → Offer → Upsell → Follow-up.\n\nSales: Connection first, sale second. Track spenders in Infloww daily.\n\nTransparency: Never say "I reply to every message personally" or "You're the only one." These break expectations.\n\nPricing: Never undercut. Never negotiate repeatedly. No Freebies without authorization.\n\nFake Stories: NEVER invent financial situations. Money comes from desire, not guilt.`,
+          quiz: [
+            { q: "How early should you be ready before shift?", options: ["5 min", "10 min", "15 min", "30 min"], answer: 1 },
+            { q: "Correct message pacing order?", options: ["Sell → Engage → Hook", "Hook → Engage → Tease → Offer → Upsell → Follow-up", "Tease → Hook → Sell", "Engage → Sell → Follow-up"], answer: 1 },
+            { q: "What comes first — connection or selling?", options: ["Selling", "Connection", "Both", "Neither"], answer: 1 },
+            { q: "Why never say 'You're the only one I'm talking to'?", options: ["Grammatically wrong", "Creates expectations that break later", "Too formal", "Platform flags it"], answer: 1 },
+            { q: "Can chatters send freebies without authorization?", options: ["Yes, if asked nicely", "Yes, for new subs", "No, never", "Only weekends"], answer: 2 },
+            { q: "Money must come from?", options: ["Guilt", "Pity", "Desire", "Obligation"], answer: 2 }
+          ]
+        },
+        { id: "d1m4", title: "Company Philosophy & Mindset", duration: "20 min", type: "reading",
+          content: `You are representing a brand, protecting an account, and building long-term revenue.\n\nEvery message has purpose. Chatters who treat this casually will be filtered early.\n\nTreat every shift like a performance review. Be consistent, intentional, and professional.`,
+          quiz: [
+            { q: "What are you representing when you chat?", options: ["Yourself", "A brand", "Your friends", "A random persona"], answer: 1 },
+            { q: "How should you treat every shift?", options: ["Casually", "Like a performance review", "Like a break", "However you want"], answer: 1 }
+          ]
+        },
+        { id: "d1m5", title: "Tools & Systems", duration: "30 min", type: "reading",
+          content: `• Hubstaff — Time tracking & productivity monitoring.\n• Monday.com — Model RAP sheets.\n• Discord — Communication, clocking in/out. Screen share must stay active.\n• Infloww CRM — Fan management, notes, tagging, sales.\n• Grammarly — Grammar and tone accuracy.`,
+          quiz: [
+            { q: "Which tool is for time tracking?", options: ["Discord", "Monday.com", "Hubstaff", "Infloww"], answer: 2 },
+            { q: "Where do you manage fan notes?", options: ["Hubstaff", "Grammarly", "Infloww CRM", "Monday.com"], answer: 2 },
+            { q: "What must stay active on Discord?", options: ["Camera", "Screen share", "Music", "Nothing"], answer: 1 }
+          ]
+        },
+        { id: "d1m6", title: "Chatter KPIs", duration: "30 min", type: "reading",
+          content: `Performance metrics:\n• Unlock Ratio • Golden Ratio • Coherence • Subscriber Engagement • Reply Time • Compliance • Attendance\n\nConsistent results = promotions. Repeated failure = retraining or termination.`,
+          quiz: [
+            { q: "Which KPI measures engagement/monetization balance?", options: ["Unlock Ratio", "Golden Ratio", "Coherence", "Reply Time"], answer: 1 },
+            { q: "Repeated KPI failure results in?", options: ["Nothing", "Extra bonus", "Retraining or termination", "More shifts"], answer: 2 },
+            { q: "Is attendance part of KPI evaluation?", options: ["No", "Yes", "Only for managers", "Only in probation"], answer: 1 }
+          ]
+        },
+        { id: "d1m7", title: "Career Progression", duration: "30 min", type: "reading",
+          content: `Growth paths:\n• Tier promotions through KPI results.\n• Specialized roles: sales, mass messages, QA, training.\n• Management track: Chat Manager → AE → GM.\n\nHigh performance = management eligibility.`,
+          quiz: [{ q: "What determines tier promotions?", options: ["Time at company", "Consistent KPI results", "Personal request", "Random"], answer: 1 }]
+        },
+        { id: "d1m8", title: "Compliance & Security", duration: "10 min", type: "reading",
+          content: `• Credentials must never be shared.\n• Systems logged out when not in use.\n• Screens not visible to third parties.\n• Security breaches reported immediately.\n\nTraining materials are company property.`,
+          quiz: [{ q: "Can you share credentials with a co-worker?", options: ["Yes, if needed", "Only temporarily", "Never", "With manager approval"], answer: 2 }]
+        }
+      ]
+    },
+    {
+      id: "day2", title: "Day 2", subtitle: "MESSAGE INTENT, PSYCHOLOGY & CHAT THINKING", icon: "📕", color: "#ec4899",
+      videoUrl: "https://drive.google.com/file/d/1N6iHWzM3x52UZKuGPVmLaRSexHhSONGx/preview",
+      description: "Day 2 is about learning how to think in chat, not just how to write. Focus on understanding the model's voice, personality, and intent behind every message.",
+      isGateDay: false,
+      modules: [
+        { id: "d2m1", title: "Persona, Tone & Alignment", duration: "2 Hours", type: "reading",
+          content: `Every message must align with the creator's personality, tone, boundaries, and communication style — not your own.\n\nCorrect Tone: Warm, playful, controlled. Keeps engagement without being aggressive.\nBad Tone: Cold, dismissive. Breaks persona. Kills momentum.\n\nMessages should feel warm, playful, confident, natural. NEVER cold, aggressive, robotic, or flat.\n\nDo not invent details contradicting the persona sheet. Consistency > creativity.`,
+          quiz: [
+            { q: "Whose voice should messages reflect?", options: ["Your own", "The model/creator's", "A generic tone", "Manager's style"], answer: 1 },
+            { q: "What matters more?", options: ["Creativity", "Consistency", "Both equally", "Neither"], answer: 1 },
+            { q: "Messages should feel:", options: ["Cold & professional", "Warm, playful, confident, natural", "Aggressive", "Formal"], answer: 1 },
+            { q: "If info isn't on persona sheet?", options: ["Make something up", "Keep neutral or redirect", "Ask the fan", "Copy another chatter"], answer: 1 }
+          ]
+        },
+        { id: "d2m2", title: "Fan Psychology & Message Types", duration: "1 Hour", type: "reading",
+          content: `Fans subscribe for different reasons: loneliness, fantasy, excitement, connection, ego, habit.\n\nIdentify what drives each fan. Message types: Opening, engagement builders, teases, offers, follow-ups, re-engagement, appreciation.\n\nWrong type at wrong time = damaged trust and killed momentum.`,
+          quiz: [
+            { q: "Why do fans subscribe?", options: ["Only for content", "Various reasons including connection & fantasy", "Because they have to", "Random chance"], answer: 1 },
+            { q: "Wrong message type at wrong time?", options: ["Nothing", "Damages trust & kills momentum", "Fan won't notice", "Increases sales"], answer: 1 }
+          ]
+        },
+        { id: "d2m3", title: "Chat Flow & Fundamentals", duration: "2 Hours", type: "reading",
+          content: `Flow: Hook → Engage → Tease → Offer → Upsell → Follow-up.\n\nNever skip steps. Never jump to selling. A rushed fan disengages.\n\nHook = grab attention. Engage = build rapport. Tease = create desire. Offer = present naturally. Upsell = increase value. Follow-up = thank & set up next interaction.`,
+          quiz: [
+            { q: "First step in chat flow?", options: ["Offer", "Hook", "Upsell", "Tease"], answer: 1 },
+            { q: "Jumping straight to selling?", options: ["Fans love it", "Fan disengages", "Sales increase", "Nothing"], answer: 1 },
+            { q: "Purpose of 'Engage' step?", options: ["Close the sale", "Build rapport & emotional connection", "Send content", "End conversation"], answer: 1 }
+          ]
+        },
+        { id: "d2m4", title: "Scripts: How They Work", duration: "1 Hour", type: "reading",
+          content: `Scripts are structure, not copy-paste shortcuts. Personalize every script to fit: persona, fan behavior, context, emotional state.\n\nIf a fan can tell you're reading a template, trust is broken immediately.`,
+          quiz: [
+            { q: "How to use scripts?", options: ["Copy-paste", "As structure to personalize", "Ignore them", "Only when told"], answer: 1 },
+            { q: "If fan detects a script?", options: ["They appreciate it", "Trust broken immediately", "They tip more", "Nothing"], answer: 1 }
+          ]
+        }
+      ]
+    },
+    {
+      id: "day3", title: "Day 3", subtitle: "QUALITY CONTROL & DECISION DAY", icon: "📖", color: "#f59e0b",
+      videoUrl: "https://drive.google.com/file/d/1bT1RPPei0gR6NkmD7igfwkrgdMvOpA5u/preview",
+      description: "Day 3 is where theory stops and real performance begins. This is a filter day — performance determines whether you continue.",
+      isGateDay: true,
+      modules: [
+        { id: "d3m1", title: "Upselling & PPV Strategy", duration: "2 Hours", type: "reading",
+          content: `Build emotion before offer. Read buying signals. Never oversell or lie. If it's nude — say nude. If teasing — say teasing.\n\nAcceptable: "I don't send this often." Never: "Craziest thing ever" (if it isn't).\n\nEvery purchase must be acknowledged — reduces chargebacks, increases loyalty.`,
+          quiz: [
+            { q: "Build what before an offer?", options: ["A script", "Emotion", "A discount", "Multiple messages"], answer: 1 },
+            { q: "Content is teasing, not explicit — what to say?", options: ["Craziest ever", "It's explicit", "It's teasing", "Nothing"], answer: 2 },
+            { q: "Why acknowledge every purchase?", options: ["Policy only", "Reduces chargebacks, increases loyalty", "Fill time", "Optional"], answer: 1 }
+          ]
+        },
+        { id: "d3m2", title: "Rapport, Whales & Retention", duration: "3 Hours", type: "reading",
+          content: `Whales = high-value spenders. Know their history, maintain consistent engagement, never rush purchases, build genuine rapport.\n\nRetention: A retained fan > 10 new subscribers. Consistent quality, personal touches, value delivery.`,
+          quiz: [
+            { q: "What are 'whales'?", options: ["New subs", "High-value spenders", "Unsubscribed fans", "Bots"], answer: 1 },
+            { q: "Retained fan vs new subs?", options: ["New subs always", "Retained fan worth more than 10 new", "Equal", "Neither matters"], answer: 1 },
+            { q: "Rush whales into purchases?", options: ["Yes, they have money", "Never rush them", "Only when slow", "If manager says"], answer: 1 }
+          ]
+        },
+        { id: "d3m3", title: "Spam Management & Unsend", duration: "1 Hour", type: "reading",
+          content: `Spam flags = account restrictions/bans. Triggers: identical mass messages, excessive links, aggressive selling.\n\nUnsending only in specific circumstances — never to hide mistakes. Always report, never cover up.`,
+          quiz: [
+            { q: "Spam flags result in?", options: ["Better visibility", "Restrictions or bans", "More followers", "Nothing"], answer: 1 },
+            { q: "Unsend to hide mistakes?", options: ["Yes", "Only small ones", "Never", "Sometimes"], answer: 2 }
+          ]
+        },
+        { id: "d3m4", title: "Crisis Management", duration: "1 Hour", type: "reading",
+          content: `Priority: Protect account, creator, long-term revenue.\n\nNever argue. Never get emotional. Never overpromise. Escalate when situations exceed your training.`,
+          quiz: [
+            { q: "Crisis priority?", options: ["Making the sale", "Protecting account, creator, revenue", "Winning argument", "Fastest response"], answer: 1 },
+            { q: "When to escalate?", options: ["Never", "When situations exceed training", "Only Day 5", "When fans are happy"], answer: 1 }
+          ]
+        },
+        { id: "d3m5", title: "Price Laddering & PPV Escalation", duration: "2 Hours", type: "reading",
+          content: `Gradually increase content value and price. Start lower to build trust and buying momentum.\n\nNever start with most expensive. Never discount aggressively. Never negotiate back and forth — teaches fans prices are flexible.`,
+          quiz: [
+            { q: "Price laddering is?", options: ["Starting highest", "Gradually increasing value/price", "Always discounting", "Random pricing"], answer: 1 },
+            { q: "Never negotiate back and forth because?", options: ["Wastes time", "Teaches fans prices are flexible", "Against rules", "All of these"], answer: 3 }
+          ]
+        }
+      ]
+    },
+    {
+      id: "day4", title: "Day 4", subtitle: "REAL CHAT EXECUTION & TOOLS UNDER PRESSURE", icon: "📘", color: "#06b6d4",
+      videoUrl: "https://drive.google.com/file/d/1zIrfHsc3HAb3kbnjXtsJDf2j8D3P3EaR/preview",
+      description: "Everything comes together in real time. The goal is control: knowing what to do, when, and when to move on.",
+      isGateDay: false,
+      modules: [
+        { id: "d4m1", title: "Mass Messages & Follow-Ups", duration: "2 Hours", type: "reading",
+          content: `Follow mass message schedule precisely. Personalize — generic blasts underperform. Follow up with engaged fans. Track opens, responses, purchases.\n\nFollow-ups are where conversion happens. Most fans don't buy on first message.`,
+          quiz: [
+            { q: "Where does conversion happen?", options: ["First message", "The follow-up", "Mass messages", "Random DMs"], answer: 1 },
+            { q: "Should mass messages be generic?", options: ["Yes", "No, personalize", "Doesn't matter", "Only for new fans"], answer: 1 }
+          ]
+        },
+        { id: "d4m2", title: "Traffic Creation (Slow Pages)", duration: "2 Hours", type: "reading",
+          content: `Don't wait — create activity. Re-engage lapsed subs, use engagement hooks, create conversations leading to offers, bump existing chats.\n\nSlow pages = opportunity to show initiative, not an excuse.`,
+          quiz: [
+            { q: "When page is slow?", options: ["Wait", "Take a break", "Create activity proactively", "Message manager"], answer: 2 },
+            { q: "Slow pages are an excuse?", options: ["Yes", "No — they're an opportunity", "Sometimes", "Depends"], answer: 1 }
+          ]
+        },
+        { id: "d4m3", title: "Advanced Sales & Empathy Conversations", duration: "3 Hours", type: "reading",
+          content: `Read fans accurately in real time. Adapt tone instantly. Sell naturally without forcing, spamming, or panicking.\n\nBest chatters create situations where buying feels natural and desired.`,
+          quiz: [
+            { q: "Best chatters create?", options: ["Pressure to buy", "Situations where buying feels natural", "Discounts", "Long pitches"], answer: 1 },
+            { q: "Adapt what in real time?", options: ["Prices", "Your tone", "Schedule", "Model"], answer: 1 }
+          ]
+        }
+      ]
+    },
+    {
+      id: "day5", title: "Day 5", subtitle: "FULL SIMULATION, READINESS & PROFESSIONALISM", icon: "📙", color: "#10b981",
+      videoUrl: "https://drive.google.com/file/d/1DQselUMozfT77fIBVv_OJZnBcodW1ED-/preview",
+      description: "Final evaluation day. Handle live pages independently, manage conversations, create traffic, and generate sales using everything you've learned.",
+      isGateDay: true,
+      modules: [
+        { id: "d5m1", title: "Full Production Simulation", duration: "Full Day", type: "reading",
+          content: `Demonstrate: Readiness without supervision. Consistent application of training. Professional conduct, judgment, reliability.\n\nDay 5 is not about perfection — it's about being stable, intentional, and capable. Performance determines graduation.`,
+          quiz: [
+            { q: "What determines graduation?", options: ["Attendance only", "Performance on Day 5", "Training length", "Manager's mood"], answer: 1 },
+            { q: "Day 5 is about being:", options: ["Perfect", "Fast", "Stable, intentional, capable", "Creative"], answer: 2 },
+            { q: "After graduation?", options: ["More training", "Week 2 live shadowing & production", "A break", "Nothing"], answer: 1 }
+          ]
+        },
+        { id: "d5m2", title: "Graduation", duration: "Ceremony", type: "graduation",
+          content: `Congratulations.\n\nCompleting this training is not easy, and not everyone makes it through. If you're here, it means you've demonstrated the ability, mindset, and discipline we look for in our team.\n\nYou now have the knowledge and skills to work as a professional chatter — representing creators, engaging fans, driving revenue, and operating at a high standard.\n\nThe next step is yours. You are now eligible to apply to work with Chatstars as a trained chatter. Submit your application and our team will review it within 24-48 hours.\n\nStay sharp. Stay consistent. We look forward to seeing you on the team.`,
+          quiz: []
+        }
+      ]
+    }
+  ]
+};
+
+// ─── STYLES ──────────────────────────────────────────────────────────────────
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+:root{--bg-primary:#0a0a0f;--bg-secondary:#111118;--bg-card:#16161f;--bg-card-hover:#1c1c28;--bg-input:#1a1a25;--border:#2a2a3a;--border-hover:#3a3a4f;--text-primary:#f0f0f5;--text-secondary:#8888a0;--text-muted:#55556a;--accent:#6366f1;--accent-glow:rgba(99,102,241,0.15);--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--pink:#ec4899;--cyan:#06b6d4}
+*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg-primary);color:var(--text-primary);font-family:'DM Sans',sans-serif}
+.app{min-height:100vh;display:flex;background:var(--bg-primary)}
+.sidebar{width:260px;min-height:100vh;background:var(--bg-secondary);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100;transition:transform .3s ease}
+.sidebar-header{padding:24px 20px;border-bottom:1px solid var(--border)}
+.sidebar-logo{font-size:11px;font-weight:700;letter-spacing:3px;color:var(--text-muted);text-transform:uppercase}.sidebar-logo span{color:var(--accent)}
+.sidebar-nav{flex:1;padding:16px 12px;overflow-y:auto}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;padding:12px 12px 8px;margin-top:8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:all .15s;font-size:13px;color:var(--text-secondary);margin-bottom:2px}
+.nav-item:hover{background:var(--bg-card);color:var(--text-primary)}.nav-item.active{background:var(--accent-glow);color:var(--accent);font-weight:500}
+.nav-item.locked{opacity:.35;cursor:not-allowed}.nav-item .icon{font-size:16px;width:20px;text-align:center}
+.nav-item .badge{margin-left:auto;font-size:10px;padding:2px 6px;border-radius:10px;background:var(--bg-input);color:var(--text-muted);font-weight:500}
+.nav-item.active .badge{background:var(--accent);color:#fff}.nav-item .lock-icon{margin-left:auto;font-size:11px;color:var(--text-muted)}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff}
+.avatar.adm{background:linear-gradient(135deg,#f59e0b,#ef4444)}.user-info .name{font-size:13px;font-weight:500}.user-info .role{font-size:11px;color:var(--text-muted)}
+.main{margin-left:260px;flex:1;min-height:100vh}
+.main-header{padding:20px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg-secondary);position:sticky;top:0;z-index:50}
+.breadcrumb{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-muted);flex-wrap:wrap}.breadcrumb .sep{opacity:.3}.breadcrumb .current{color:var(--text-primary);font-weight:500}
+.main-content{padding:32px;max-width:1100px}
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg-primary);background-image:radial-gradient(ellipse at 30% 20%,rgba(99,102,241,.08) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(236,72,153,.06) 0%,transparent 50%)}
+.login-card{width:420px;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.login-card h1{font-size:11px;font-weight:700;letter-spacing:3px;color:var(--text-muted);margin-bottom:24px}.login-card h1 span{color:var(--accent)}
+.login-card h2{font-size:20px;font-weight:600;margin-bottom:6px}.login-card p{font-size:13px;color:var(--text-secondary);margin-bottom:28px}
+.input-group{margin-bottom:16px;text-align:left}.input-group label{display:block;font-size:11px;font-weight:500;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
+.input-group input{width:100%;padding:12px 14px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:14px;font-family:inherit;outline:none;transition:border .2s}
+.input-group input:focus{border-color:var(--accent)}
+.btn-primary{padding:12px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-primary:hover{background:#5558e6;transform:translateY(-1px)}.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}.btn-primary.full{width:100%;margin-top:8px}
+.error-msg{color:var(--danger);font-size:12px;margin-top:12px}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;transition:all .2s}
+.stat-card:hover{border-color:var(--border-hover)}.stat-card .label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.stat-card .value{font-size:28px;font-weight:700;margin-bottom:4px}.stat-card .sub{font-size:12px;color:var(--text-secondary)}
+.progress-bar-container{width:100%;height:6px;background:var(--bg-input);border-radius:3px;overflow:hidden}
+.progress-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
+.day-cards{display:grid;gap:16px}.day-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:20px}
+.day-card:hover{border-color:var(--border-hover);transform:translateY(-1px)}.day-card.locked{opacity:.4;cursor:not-allowed}.day-card.locked:hover{transform:none}
+.day-card .day-icon{width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.day-card .day-info{flex:1}.day-card .day-title{font-size:16px;font-weight:600;margin-bottom:2px}
+.day-card .day-sub{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.day-card .day-desc{font-size:13px;color:var(--text-secondary);line-height:1.5}
+.day-card .day-progress{text-align:right;min-width:80px}.day-card .day-progress .pct{font-size:20px;font-weight:700}
+.day-card .day-progress .modules-count{font-size:11px;color:var(--text-muted);margin-top:4px}
+.module-list{display:grid;gap:12px;margin-top:20px}
+.module-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:16px 20px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:16px}
+.module-card:hover{border-color:var(--border-hover)}.module-card.locked{opacity:.35;cursor:not-allowed}
+.module-card.completed{border-left:3px solid var(--success)}.module-card.active-module{border-left:3px solid var(--accent);background:var(--accent-glow)}
+.module-status{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.module-status.done{background:var(--success);border-color:var(--success);color:#fff}.module-status.current{border-color:var(--accent);color:var(--accent)}
+.module-info{flex:1}.module-info .title{font-size:14px;font-weight:500}.module-info .meta{font-size:11px;color:var(--text-muted);margin-top:2px}
+.module-card .type-badge{font-size:10px;padding:3px 8px;border-radius:6px;background:var(--bg-input);color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;font-weight:500}
+.content-view{max-width:780px}.content-header{margin-bottom:28px}.content-header h1{font-size:22px;font-weight:700;margin-bottom:6px}
+.content-header .meta-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.content-header .meta-item{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:4px}
+.video-embed{width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;margin-bottom:28px;background:var(--bg-input);border:1px solid var(--border)}
+.video-embed iframe{width:100%;height:100%;border:none}
+.content-body{font-size:14px;line-height:1.8;color:var(--text-secondary);white-space:pre-wrap;margin-bottom:32px}
+.exercise-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:12px}
+.exercise-card .prompt{font-size:14px;font-weight:500;margin-bottom:6px}.exercise-card .hint{font-size:12px;color:var(--text-muted);margin-bottom:12px;font-style:italic}
+.exercise-card textarea{width:100%;min-height:100px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text-primary);font-family:inherit;font-size:13px;line-height:1.6;resize:vertical;outline:none}
+.exercise-card textarea:focus{border-color:var(--accent)}
+.quiz-section{margin-top:32px}.quiz-section h3{font-size:16px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.quiz-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:12px}
+.quiz-card .question{font-size:14px;font-weight:500;margin-bottom:12px}.quiz-card .options{display:grid;gap:8px}
+.quiz-option{padding:10px 14px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;transition:all .15s;display:flex;align-items:center;gap:10px}
+.quiz-option:hover{border-color:var(--border-hover);background:var(--bg-card-hover)}.quiz-option.selected{border-color:var(--accent);background:var(--accent-glow)}
+.quiz-option.correct{border-color:var(--success);background:rgba(16,185,129,.1)}.quiz-option.incorrect{border-color:var(--danger);background:rgba(239,68,68,.1)}
+.quiz-option .letter{width:22px;height:22px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.quiz-option.selected .letter{border-color:var(--accent);color:var(--accent)}.quiz-option.correct .letter{border-color:var(--success);background:var(--success);color:#fff}
+.quiz-option.incorrect .letter{border-color:var(--danger);background:var(--danger);color:#fff}
+.quiz-result{padding:16px 20px;border-radius:10px;margin-top:16px;font-size:14px;font-weight:500}
+.quiz-result.pass{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:var(--success)}
+.quiz-result.fail{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--danger)}
+.btn-secondary{padding:10px 20px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-secondary:hover{border-color:var(--border-hover);background:var(--bg-card-hover)}
+.btn-success{padding:10px 20px;background:var(--success);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-success:hover{background:#0ea572}
+.btn-danger{padding:8px 16px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;color:var(--danger);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit}
+.actions-row{display:flex;gap:12px;margin-top:24px;justify-content:flex-end}
+.graduation-view{text-align:center;padding:60px 20px}.graduation-view .trophy{font-size:72px;margin-bottom:20px}
+.graduation-view h1{font-size:32px;font-weight:700;margin-bottom:12px}.graduation-view p{font-size:15px;color:var(--text-secondary);max-width:500px;margin:0 auto 24px;line-height:1.7}
+.grading-indicator{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--accent);margin-top:8px}
+.grading-indicator .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.admin-badge{font-size:9px;padding:2px 7px;border-radius:4px;background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(239,68,68,.2));color:#f59e0b;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:1px solid rgba(245,158,11,.3)}
+.trainee-table{width:100%;border-collapse:collapse;background:var(--bg-card);overflow:hidden}
+.trainee-table th{text-align:left;padding:14px 16px;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;font-weight:600;background:var(--bg-secondary);border-bottom:1px solid var(--border)}
+.trainee-table td{padding:14px 16px;font-size:13px;border-bottom:1px solid var(--border);color:var(--text-secondary)}
+.trainee-table tr:last-child td{border-bottom:none}.trainee-table tr:hover td{background:var(--bg-card-hover)}
+.status-pill{display:inline-block;font-size:10px;padding:3px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.status-pill.graduated{background:rgba(245,158,11,.15);color:var(--warning)}.status-pill.in-progress{background:rgba(99,102,241,.15);color:var(--accent)}
+.status-pill.at-risk{background:rgba(239,68,68,.15);color:var(--danger)}.status-pill.not-started{background:rgba(85,85,106,.2);color:var(--text-muted)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:700px;width:100%;max-height:80vh;overflow-y:auto}
+.module-score-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.module-score-row:last-child{border-bottom:none}
+.sign-out-btn{padding:6px 14px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-size:11px;cursor:pointer;font-family:inherit;transition:all .2s}
+.sign-out-btn:hover{border-color:var(--danger);color:var(--danger)}
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.stats-row{grid-template-columns:repeat(2,1fr)}.main-content{padding:20px}.mobile-toggle{display:flex!important;position:fixed;top:16px;left:16px;z-index:200;width:36px;height:36px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;align-items:center;justify-content:center;cursor:pointer}}
+.mobile-toggle{display:none}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.fade-in{animation:fadeIn .3s ease}@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+`;
+
+// ─── STORAGE ─────────────────────────────────────────────────────────────────
+const SK = "chatstars-academy";
+const SP = "trainee:";
+const AP = "account:";
+async function loadProgress(){try{const r=await window.storage.get(SK);return r?JSON.parse(r.value):null}catch{return null}}
+async function saveProgress(d){try{await window.storage.set(SK,JSON.stringify(d));if(d.user){await window.storage.set(SP+d.user.toLowerCase().replace(/\s+/g,"-"),JSON.stringify(d),true)}}catch(e){console.error("Save:",e)}}
+async function loadAllTrainees(){try{const k=await window.storage.list(SP,true);if(!k?.keys?.length)return[];const t=[];for(const key of k.keys){try{const r=await window.storage.get(key,true);if(r?.value)t.push(JSON.parse(r.value))}catch{}}return t}catch{return[]}}
+async function saveAccount(username,data){try{await window.storage.set(AP+username.toLowerCase().trim(),JSON.stringify(data),true)}catch{}}
+async function loadAccount(username){try{const r=await window.storage.get(AP+username.toLowerCase().trim(),true);return r?JSON.parse(r.value):null}catch{return null}}
+function initProgress(){return{user:null,email:null,telegram:null,country:null,isAdmin:false,completedModules:[],quizScores:{},exerciseResponses:{},startedAt:new Date().toISOString(),lastActive:new Date().toISOString()}}
+
+function ProgressBar({value,color="var(--accent)",height=6}){return(<div className="progress-bar-container" style={{height}}><div className="progress-bar-fill" style={{width:`${Math.min(100,value)}%`,background:color}}/></div>)}
+
+// ─── LOGIN / REGISTER ────────────────────────────────────────────────────────
+// Pre-built admin accounts - these users never need to register
+const ADMIN_ACCOUNTS = {
+  "keit": { fullName: "Keit Dmitrijev", email: "admin@chatstars.com", telegram: "keit" },
+  "keit dmitrijev": { fullName: "Keit Dmitrijev", email: "admin@chatstars.com", telegram: "keit" },
+  "zein": { fullName: "Zein", email: "admin@chatstars.com", telegram: "zein" },
+  "alex": { fullName: "Alex Bakalov", email: "admin@chatstars.com", telegram: "alex" },
+  "alex bakalov": { fullName: "Alex Bakalov", email: "admin@chatstars.com", telegram: "alex" },
+  "angelica": { fullName: "Angelica", email: "admin@chatstars.com", telegram: "angelica" }
+};
+const ADMIN_PASSWORD = "chatstars2026";
+const DEFAULT_ENROLL_CODE = "CHATSTARS-TRAIN-2026";
+const ENROLL_KEY = "enrollment-code";
+
+async function getEnrollCode(){try{const r=await window.storage.get(ENROLL_KEY,true);return r?r.value:DEFAULT_ENROLL_CODE}catch{return DEFAULT_ENROLL_CODE}}
+async function setEnrollCode(code){try{await window.storage.set(ENROLL_KEY,code,true)}catch{}}
+async function deleteAccount(nameKey){try{await window.storage.delete(AP+nameKey,true);await window.storage.delete(SP+nameKey,true)}catch{}}
+async function resetAccountPassword(nameKey,newPw){try{const r=await window.storage.get(AP+nameKey,true);if(r?.value){const a=JSON.parse(r.value);a.password=newPw;await window.storage.set(AP+nameKey,JSON.stringify(a),true);return true}}catch{}return false}
+
+function LoginScreen({onLogin,onRegister}){
+  const[mode,setMode]=useState("signin");
+  const[signInName,setSignInName]=useState("");const[signInPw,setSignInPw]=useState("");
+  const[resetName,setResetName]=useState("");const[resetEmail,setResetEmail]=useState("");const[resetDone,setResetDone]=useState(false);const[tempPw,setTempPw]=useState("");
+  const[name,setName]=useState("");const[email,setEmail]=useState("");const[tg,setTg]=useState("");const[country,setCountry]=useState("");const[enrollCode,setEnrollCode]=useState("");const[newPw,setNewPw]=useState("");const[confirmPw,setConfirmPw]=useState("");
+  const[err,setErr]=useState("");const[loading,setLoading]=useState(false);
+
+  const countries=["Afghanistan","Albania","Algeria","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahrain","Bangladesh","Belarus","Belgium","Bolivia","Bosnia and Herzegovina","Brazil","Bulgaria","Cambodia","Cameroon","Canada","Chile","China","Colombia","Costa Rica","Croatia","Czech Republic","Denmark","Dominican Republic","Ecuador","Egypt","El Salvador","Estonia","Ethiopia","Finland","France","Georgia","Germany","Ghana","Greece","Guatemala","Honduras","Hong Kong","Hungary","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kosovo","Kuwait","Latvia","Lebanon","Libya","Lithuania","Malaysia","Mexico","Moldova","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Nepal","Netherlands","New Zealand","Nicaragua","Nigeria","North Macedonia","Norway","Oman","Pakistan","Panama","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Saudi Arabia","Senegal","Serbia","Singapore","Slovakia","Slovenia","South Africa","South Korea","Spain","Sri Lanka","Sweden","Switzerland","Taiwan","Thailand","Tunisia","Turkey","UAE","UK","Ukraine","United States","Uruguay","Uzbekistan","Venezuela","Vietnam","Other"];
+
+  const hint={fontSize:11,color:"var(--text-muted)",marginTop:3,fontStyle:"italic"};
+
+  const handleSignIn=async()=>{
+    setErr("");if(!signInName.trim())return setErr("Enter your full name.");if(!signInPw)return setErr("Enter your password.");
+    setLoading(true);
+    const nameLower=signInName.trim().toLowerCase();
+    // Check if admin
+    if(ADMIN_ACCOUNTS[nameLower]){
+      setLoading(true);
+      // Check all possible keys for this admin (name aliases resolve to same person)
+      const adminInfo=ADMIN_ACCOUNTS[nameLower];
+      const possibleKeys=[nameLower.replace(/\s+/g,"-"),adminInfo.fullName.toLowerCase().replace(/\s+/g,"-")];
+      let validPw=ADMIN_PASSWORD;
+      for(const pk of possibleKeys){try{const sa=await loadAccount(pk);if(sa?.password){validPw=sa.password;break;}}catch{}}
+      setLoading(false);
+      if(signInPw!==validPw)return setErr("Incorrect password.");
+      onLogin({...adminInfo,password:validPw,isBuiltInAdmin:true});
+      return;
+    }
+    // Regular user - check stored account
+    const key=nameLower.replace(/\s+/g,"-");
+    const acct=await loadAccount(key);
+    setLoading(false);
+    if(!acct)return setErr("Account not found. Need to create one?");
+    if(acct.password!==signInPw)return setErr("Incorrect password.");
+    onLogin(acct);
+  };
+
+  const handleForgotPw=async()=>{
+    setErr("");if(!resetName.trim())return setErr("Enter your full name.");if(!resetEmail.trim()||!resetEmail.includes("@"))return setErr("Enter your email address.");
+    setLoading(true);
+    const key=resetName.trim().toLowerCase().replace(/\s+/g,"-");
+    const acct=await loadAccount(key);
+    setLoading(false);
+    if(!acct)return setErr("Account not found with that name.");
+    if(acct.email?.toLowerCase()!==resetEmail.trim().toLowerCase())return setErr("Email doesn't match the account on file.");
+    // Generate temp password
+    const tmp="TEMP-"+Math.random().toString(36).substring(2,8).toUpperCase();
+    acct.password=tmp;
+    await saveAccount(key,acct);
+    setTempPw(tmp);setResetDone(true);
+  };
+
+  const handleRegister=async()=>{
+    setErr("");
+    if(!name.trim())return setErr("Enter your full name.");
+    if(!email.trim()||!email.includes("@"))return setErr("Enter a valid email address.");
+    if(!tg.trim())return setErr("Enter your Telegram handle.");
+    if(!country)return setErr("Select your country.");
+    // ENROLLMENT CODE DISABLED FOR NOW — re-enable later by uncommenting below
+    // if(!enrollCode.trim())return setErr("Enter the enrollment code provided by your manager.");
+    if(!newPw)return setErr("Choose a password.");
+    if(newPw.length<4)return setErr("Password must be at least 4 characters.");
+    if(newPw!==confirmPw)return setErr("Passwords don't match.");
+    // Block registering as admin name
+    if(ADMIN_ACCOUNTS[name.trim().toLowerCase()])return setErr("This name is reserved. If you're an admin, use Sign In instead.");
+    setLoading(true);
+    // ENROLLMENT CODE CHECK DISABLED FOR NOW — re-enable later
+    // const validCode=await getEnrollCode();
+    // if(enrollCode.trim().toUpperCase()!==validCode.toUpperCase()){setLoading(false);return setErr("Invalid enrollment code. Contact your manager for the correct code.");}
+    const key=name.trim().toLowerCase().replace(/\s+/g,"-");
+    const existing=await loadAccount(key);
+    if(existing){setLoading(false);return setErr("An account with this name already exists. Try signing in.");}
+    const acct={fullName:name.trim(),email:email.trim(),telegram:tg.trim().replace(/^@/,""),country:country,password:newPw,createdAt:new Date().toISOString()};
+    await saveAccount(key,acct);
+    setLoading(false);
+    onRegister(acct);
+  };
+
+  const tabStyle=(active)=>({flex:1,padding:"10px",background:active?"var(--accent)":"var(--bg-input)",color:active?"#fff":"var(--text-muted)",border:"none",borderRadius:"8px",fontSize:"13px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"});
+
+  return(<div className="login-screen"><div className="login-card fade-in" style={{maxWidth:440}}>
+    <h1>CHAT<span>STARS</span></h1><h2>Training Academy</h2><p style={{marginBottom:20}}>Sign in or create your account</p>
+    <div style={{display:"flex",gap:8,marginBottom:24}}>
+      <button style={tabStyle(mode==="signin")} onClick={()=>{setMode("signin");setErr("");setResetDone(false)}}>Sign In</button>
+      <button style={tabStyle(mode==="register")} onClick={()=>{setMode("register");setErr("");setResetDone(false)}}>Create Account</button>
+    </div>
+
+    {mode==="forgot"?<>
+      {!resetDone?<>
+        <div style={{fontSize:14,fontWeight:500,marginBottom:4}}>🔑 Reset Your Password</div>
+        <div style={{fontSize:12,color:"var(--text-muted)",marginBottom:16}}>Enter your name and the email you registered with. We'll reset your password to a temporary one.</div>
+        <div className="input-group"><label>Full Name</label><input value={resetName} onChange={e=>setResetName(e.target.value)} placeholder="The name you registered with..."/></div>
+        <div className="input-group"><label>Email Address</label><input type="email" value={resetEmail} onChange={e=>setResetEmail(e.target.value)} placeholder="The email on your account..." onKeyDown={e=>e.key==="Enter"&&handleForgotPw()}/></div>
+        <button className="btn-primary full" onClick={handleForgotPw} disabled={loading}>{loading?"Verifying...":"Reset Password"}</button>
+      </>:<>
+        <div style={{textAlign:"center",padding:"20px 0"}}>
+          <div style={{fontSize:32,marginBottom:12}}>✅</div>
+          <div style={{fontSize:16,fontWeight:600,marginBottom:8}}>Password Reset!</div>
+          <div style={{fontSize:13,color:"var(--text-secondary)",marginBottom:16}}>Your temporary password is:</div>
+          <div style={{padding:"14px 20px",background:"var(--bg-input)",border:"2px solid var(--success)",borderRadius:10,fontSize:18,fontWeight:700,letterSpacing:2,color:"var(--success)",fontFamily:"monospace",marginBottom:16}}>{tempPw}</div>
+          <div style={{fontSize:12,color:"var(--text-muted)",marginBottom:20}}>Copy this password and use it to sign in. Then go to Settings to set a new permanent password.</div>
+        </div>
+      </>}
+      <p style={{fontSize:12,color:"var(--text-muted)",marginTop:12}}>Remember your password? <span style={{color:"var(--accent)",cursor:"pointer",fontWeight:500}} onClick={()=>{setMode("signin");setErr("");setResetDone(false)}}>Sign in</span></p>
+    </>:mode==="signin"?<>
+      <div className="input-group"><label>Full Name</label><input value={signInName} onChange={e=>setSignInName(e.target.value)} placeholder="Enter your full name..." onKeyDown={e=>e.key==="Enter"&&handleSignIn()}/><div style={hint}>The exact full name you registered with</div></div>
+      <div className="input-group"><label>Password</label><input type="password" value={signInPw} onChange={e=>setSignInPw(e.target.value)} placeholder="Enter your password..." onKeyDown={e=>e.key==="Enter"&&handleSignIn()}/></div>
+      <button className="btn-primary full" onClick={handleSignIn} disabled={loading}>{loading?"Signing in...":"Sign In"}</button>
+      <p style={{fontSize:12,color:"var(--text-muted)",marginTop:12}}>
+        <span style={{color:"var(--accent)",cursor:"pointer",fontWeight:500}} onClick={()=>{setMode("forgot");setErr("");setResetDone(false)}}>Forgot password?</span>
+        <span style={{margin:"0 8px"}}>·</span>
+        First time? <span style={{color:"var(--accent)",cursor:"pointer",fontWeight:500}} onClick={()=>{setMode("register");setErr("")}}>Create an account</span>
+      </p>
+    </>:<>
+      <div className="input-group"><label>Full Name</label><input value={name} onChange={e=>setName(e.target.value)} placeholder="Enter your full name..."/><div style={hint}>Your real, correct full name — this is how managers will identify you</div></div>
+      <div className="input-group"><label>Email Address</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="your@email.com"/><div style={hint}>Your correct email address — used for company communication</div></div>
+      <div className="input-group"><label>Telegram</label><input value={tg} onChange={e=>setTg(e.target.value)} placeholder="@yourtelegram"/><div style={hint}>Your Telegram username including the @ sign</div></div>
+      <div className="input-group"><label>Country</label><select value={country} onChange={e=>setCountry(e.target.value)} style={{width:"100%",padding:"12px 14px",background:"var(--bg-input)",border:"1px solid var(--border)",borderRadius:8,color:country?"var(--text-primary)":"var(--text-muted)",fontSize:14,fontFamily:"inherit",outline:"none",cursor:"pointer",appearance:"auto"}}><option value="">Select your country...</option>{countries.map(c=><option key={c} value={c}>{c}</option>)}</select><div style={hint}>The country you are currently based in</div></div>
+      {/* ENROLLMENT CODE FIELD DISABLED — re-enable later by uncommenting
+      <div className="input-group"><label>Enrollment Code</label><input value={enrollCode} onChange={e=>setEnrollCode(e.target.value)} placeholder="Enter enrollment code..." style={{textTransform:"uppercase"}}/><div style={hint}>Provided by your hiring/training manager — required to register</div></div>
+      */}
+      <div style={{height:1,background:"var(--border)",margin:"8px 0 16px"}}/>
+      <div className="input-group"><label>Create Password</label><input type="password" value={newPw} onChange={e=>setNewPw(e.target.value)} placeholder="Choose a password..."/></div>
+      <div className="input-group"><label>Confirm Password</label><input type="password" value={confirmPw} onChange={e=>setConfirmPw(e.target.value)} placeholder="Confirm your password..." onKeyDown={e=>e.key==="Enter"&&handleRegister()}/></div>
+      <button className="btn-primary full" onClick={handleRegister} disabled={loading}>{loading?"Creating account...":"Create Account & Enter"}</button>
+      <p style={{fontSize:12,color:"var(--text-muted)",marginTop:12}}>Already have an account? <span style={{color:"var(--accent)",cursor:"pointer",fontWeight:500}} onClick={()=>{setMode("signin");setErr("")}}>Sign in</span></p>
+    </>}
+    {err&&<div className="error-msg">{err}</div>}
+  </div></div>);
+}
+
+// ─── ADMIN DASHBOARD ─────────────────────────────────────────────────────────
+function AdminDashboard(){
+  const[trainees,setTrainees]=useState([]);const[loading,setLoading]=useState(true);const[sel,setSel]=useState(null);const[filter,setFilter]=useState(null);const[countryFilter,setCountryFilter]=useState("");
+  const{days}=TRAINING_DATA;const totalMods=days.reduce((s,d)=>s+d.modules.length,0);
+  const fetch2=async()=>{setLoading(true);const d=await loadAllTrainees();setTrainees(d.filter(t=>t.user));setLoading(false)};
+  useEffect(()=>{fetch2()},[]);
+  const status=t=>{const p=Math.round((t.completedModules?.length||0)/totalMods*100);if(p===100)return"graduated";if(p===0)return"not-started";if(p<30)return"at-risk";return"in-progress"};
+  const curDay=t=>{for(let i=days.length-1;i>=0;i--)if(days[i].modules.some(m=>t.completedModules?.includes(m.id)))return`Day ${i+1}`;return"Not started"};
+  const avgScore=t=>{const s=Object.values(t.quizScores||{});return s.length?Math.round(s.reduce((a,b)=>a+b,0)/s.length):0};
+  const grad=trainees.filter(t=>status(t)==="graduated").length;
+  const active=trainees.filter(t=>["in-progress","at-risk"].includes(status(t))).length;
+  const risk=trainees.filter(t=>status(t)==="at-risk").length;
+  const notStarted=trainees.filter(t=>status(t)==="not-started").length;
+
+  const filtered=(filter?trainees.filter(t=>{
+    if(filter==="all")return true;
+    if(filter==="active")return["in-progress","at-risk"].includes(status(t));
+    if(filter==="at-risk")return status(t)==="at-risk";
+    if(filter==="graduated")return status(t)==="graduated";
+    if(filter==="not-started")return status(t)==="not-started";
+    return true;
+  }):trainees).filter(t=>!countryFilter||t.country===countryFilter);
+
+  const allCountries=[...new Set(trainees.map(t=>t.country).filter(Boolean))].sort();
+
+  const filterLabel={"all":"All Trainees","active":"Active Trainees","at-risk":"At Risk Trainees","graduated":"Graduated","not-started":"Not Started"};
+
+  const StatCard=({label,value,color,sub,filterKey})=>(
+    <div className="stat-card" style={{cursor:"pointer",border:filter===filterKey?"2px solid "+(color||"var(--accent)"):"1px solid var(--border)",transition:"all 0.2s"}}
+      onClick={()=>setFilter(filter===filterKey?null:filterKey)}>
+      <div className="label">{label}</div>
+      <div className="value" style={{color:color||"var(--text-primary)"}}>{value}</div>
+      <div className="sub">{filter===filterKey?"✓ Showing":"Click to filter"} · {sub}</div>
+    </div>
+  );
+
+  return(<div className="fade-in">
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+      <h1 style={{fontSize:24,fontWeight:700}}>👑 Admin Dashboard</h1>
+      <button className="sign-out-btn" onClick={fetch2} style={{color:"var(--accent)",borderColor:"var(--accent)"}}>{loading?"Loading...":"↻ Refresh"}</button>
+    </div>
+    <p style={{color:"var(--text-secondary)",fontSize:14,marginBottom:28}}>Click any stat card to filter the table below. Click a trainee row to see their full profile.</p>
+    <div className="stats-row">
+      <StatCard label="Total Trainees" value={trainees.length} sub="enrolled" filterKey="all"/>
+      <StatCard label="Active" value={active} color="var(--accent)" sub="in training" filterKey="active"/>
+      <StatCard label="At Risk" value={risk} color="var(--danger)" sub="<30% progress" filterKey="at-risk"/>
+      <StatCard label="Graduated" value={grad} color="var(--success)" sub="completed all" filterKey="graduated"/>
+    </div>
+
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,flexWrap:"wrap",gap:10}}>
+      <h3 style={{fontSize:16,fontWeight:600}}>{filter?filterLabel[filter]||"All Trainees":"All Trainees"} ({filtered.length})</h3>
+      <div style={{display:"flex",gap:8,alignItems:"center"}}>
+        {allCountries.length>0&&<select value={countryFilter} onChange={e=>setCountryFilter(e.target.value)} style={{padding:"6px 10px",background:"var(--bg-input)",border:"1px solid var(--border)",borderRadius:6,color:countryFilter?"var(--text-primary)":"var(--text-muted)",fontSize:12,fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+          <option value="">All Countries</option>{allCountries.map(c=><option key={c} value={c}>{c} ({trainees.filter(t=>t.country===c).length})</option>)}
+        </select>}
+        {(filter||countryFilter)&&<button className="sign-out-btn" onClick={()=>{setFilter(null);setCountryFilter("")}} style={{fontSize:11,padding:"4px 10px"}}>✕ Clear Filters</button>}
+      </div>
+    </div>
+
+    {filtered.length===0&&!loading?
+      <div className="stat-card" style={{textAlign:"center",padding:40}}><div style={{fontSize:32,marginBottom:12}}>{filter==="graduated"?"🎓":filter==="at-risk"?"⚠️":"📭"}</div><div style={{color:"var(--text-secondary)",fontSize:14}}>{filter?"No trainees match this filter.":"No trainees yet."}</div></div>
+    :
+      <div style={{borderRadius:12,overflow:"hidden",border:"1px solid var(--border)"}}>
+        <table className="trainee-table"><thead><tr><th>Trainee</th><th>Country</th><th>Status</th><th>Progress</th><th>Avg Score</th><th>AI Flag</th><th>Modules</th></tr></thead>
+        <tbody>{filtered.sort((a,b)=>(b.completedModules?.length||0)-(a.completedModules?.length||0)).map((t,i)=>{
+          const st=status(t);const pct=Math.round((t.completedModules?.length||0)/totalMods*100);const avg=avgScore(t);
+          const hasAiFlag=t.aiFlags&&Object.values(t.aiFlags).some(v=>v==="high"||v==="certain");
+          const hasNotes=t.candidateNotes&&Object.values(t.candidateNotes).flat().length>0;
+          return(<tr key={i} style={{cursor:"pointer"}} onClick={()=>setSel(t)}>
+            <td style={{color:"var(--text-primary)",fontWeight:500}}>{t.user} {t.isAdmin&&<span className="admin-badge">Admin</span>} {hasNotes&&<span title="Has AI talent notes" style={{fontSize:10,cursor:"help"}}>📝</span>}</td>
+            <td style={{fontSize:12}}>{t.country||<span style={{color:"var(--text-muted)"}}>—</span>}</td>
+            <td><span className={`status-pill ${st}`}>{st.replace("-"," ")}</span></td>
+            <td><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:60}}><ProgressBar value={pct} color={pct===100?"var(--success)":"var(--accent)"} height={4}/></div><span style={{fontSize:12,fontWeight:600}}>{pct}%</span></div></td>
+            <td style={{color:avg>=70?"var(--success)":avg>0?"var(--danger)":"var(--text-muted)"}}>{avg>0?`${avg}%`:"—"}</td>
+            <td>{hasAiFlag?<span style={{fontSize:10,padding:"2px 6px",borderRadius:4,fontWeight:700,background:"rgba(239,68,68,0.15)",color:"var(--danger)"}}>🤖 FLAGGED</span>:<span style={{fontSize:11,color:"var(--text-muted)"}}>Clean</span>}</td>
+            <td>{t.completedModules?.length||0}/{totalMods}</td>
+          </tr>)
+        })}</tbody></table>
+      </div>
+    }
+    {sel&&<div className="modal-overlay" onClick={()=>setSel(null)}>
+      <div className="modal-card fade-in" onClick={e=>e.stopPropagation()}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+          <div>
+            <h2 style={{fontSize:20,fontWeight:700,marginBottom:4}}>{sel.user}</h2>
+            <div style={{display:"flex",gap:16,flexWrap:"wrap",marginBottom:6}}>
+              {sel.country&&<span style={{fontSize:12,color:"var(--warning)"}}>🌍 {sel.country}</span>}
+              {sel.email&&<span style={{fontSize:12,color:"var(--text-secondary)"}}>✉️ {sel.email}</span>}
+              {sel.telegram&&<span style={{fontSize:12,color:"var(--cyan)"}}>✈️ @{sel.telegram}</span>}
+            </div>
+            <div style={{color:"var(--text-muted)",fontSize:12,marginBottom:20}}>
+              Started: {new Date(sel.startedAt).toLocaleDateString()} · Last active: {sel.lastActive?new Date(sel.lastActive).toLocaleDateString():"—"} · Modules: {sel.completedModules?.length||0}/{totalMods} · Avg: {avgScore(sel)}%
+              <span style={{marginLeft:8}} className={`status-pill ${status(sel)}`}>{status(sel).replace("-"," ")}</span>
+            </div>
+          </div>
+          <button className="btn-secondary" onClick={()=>setSel(null)} style={{padding:"6px 12px",fontSize:12}}>✕</button>
+        </div>
+        {/* AI Flags */}
+        {sel.aiFlags&&Object.keys(sel.aiFlags).length>0&&<div style={{padding:"12px 16px",borderRadius:10,marginBottom:16,background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.2)"}}>
+          <div style={{fontSize:12,fontWeight:600,color:"var(--danger)",marginBottom:6}}>🤖 AI/ChatGPT Detection Flags</div>
+          {Object.entries(sel.aiFlags).map(([modId,level])=>{const m=days.flatMap(d=>d.modules).find(x=>x.id===modId);return m?<div key={modId} style={{fontSize:12,color:"var(--text-secondary)",padding:"2px 0"}}>{m.title}: <span style={{fontWeight:600,color:level==="certain"||level==="high"?"var(--danger)":"var(--warning)"}}>{level.toUpperCase()}</span></div>:null})}
+        </div>}
+        {/* Candidate Notes */}
+        {sel.candidateNotes&&Object.keys(sel.candidateNotes).length>0&&<div style={{padding:"12px 16px",borderRadius:10,marginBottom:16,background:"rgba(99,102,241,0.08)",border:"1px solid rgba(99,102,241,0.2)"}}>
+          <div style={{fontSize:12,fontWeight:600,color:"var(--accent)",marginBottom:8}}>📝 AI Talent Assessment Notes</div>
+          {Object.entries(sel.candidateNotes).map(([modId,notes])=>{const m=days.flatMap(d=>d.modules).find(x=>x.id===modId);return m&&notes?.length?<div key={modId} style={{marginBottom:6}}>
+            <div style={{fontSize:11,color:"var(--text-muted)",marginBottom:2}}>{m.title}:</div>
+            {notes.map((n,ni)=><div key={ni} style={{fontSize:12,color:"var(--text-primary)",padding:"2px 0 2px 12px",borderLeft:"2px solid rgba(99,102,241,0.3)"}}>{n}</div>)}
+          </div>:null})}
+        </div>}
+        {days.map(day=><div key={day.id} style={{marginBottom:20}}>
+          <div style={{fontSize:13,fontWeight:600,marginBottom:8,color:day.color}}>{day.icon} {day.title} — {day.subtitle}</div>
+          {day.modules.map(mod=>{const done=sel.completedModules?.includes(mod.id);const sc=sel.quizScores?.[mod.id];
+            return(<div key={mod.id} className="module-score-row">
+              <span style={{fontSize:14}}>{done?"✅":"⬜"}</span><span style={{flex:1}}>{mod.title}</span>
+              <span style={{fontWeight:600,minWidth:50,textAlign:"right",color:sc>=70?"var(--success)":sc>0?"var(--danger)":"var(--text-muted)"}}>{sc!==undefined?`${Math.round(sc)}%`:"—"}</span>
+            </div>)
+          })}
+        </div>)}
+        {sel.exerciseResponses&&Object.keys(sel.exerciseResponses).length>0&&<div style={{marginTop:16}}>
+          <h3 style={{fontSize:14,fontWeight:600,marginBottom:12}}>Written Responses</h3>
+          {Object.entries(sel.exerciseResponses).map(([modId,resp])=>{const mod=days.flatMap(d=>d.modules).find(m=>m.id===modId);if(!mod?.exercises)return null;
+            return(<div key={modId} style={{marginBottom:16}}>
+              <div style={{fontSize:12,fontWeight:600,color:"var(--text-muted)",marginBottom:8}}>{mod.title}</div>
+              {mod.exercises.map((ex,i)=><div key={i} style={{marginBottom:8,padding:12,background:"var(--bg-input)",borderRadius:8}}>
+                <div style={{fontSize:11,color:"var(--text-muted)",marginBottom:4}}>{ex.prompt}</div>
+                <div style={{fontSize:13,color:"var(--text-primary)"}}>{resp[i]||"No response"}</div>
+              </div>)}
+            </div>)
+          })}
+        </div>}
+        {/* Admin Actions */}
+        {!sel.isAdmin&&<div style={{marginTop:24,padding:16,background:"rgba(239,68,68,0.05)",border:"1px solid rgba(239,68,68,0.15)",borderRadius:10}}>
+          <div style={{fontSize:13,fontWeight:600,marginBottom:12,color:"var(--danger)"}}>⚡ Admin Actions</div>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            <button className="btn-danger" onClick={async()=>{const np=prompt("Enter new password for "+sel.user+":");if(np&&np.length>=4){const k=sel.user.toLowerCase().replace(/\s+/g,"-");const ok=await resetAccountPassword(k,np);alert(ok?"Password reset successfully.":"Failed to reset — user may not have a stored account.")}}} style={{fontSize:12}}>🔑 Reset Password</button>
+            <button className="btn-danger" onClick={async()=>{if(confirm("DELETE "+sel.user+"? This removes their account and all training progress permanently.")){const k=sel.user.toLowerCase().replace(/\s+/g,"-");await deleteAccount(k);setSel(null);fetch2()}}} style={{fontSize:12,background:"rgba(239,68,68,0.2)",borderColor:"rgba(239,68,68,0.4)"}}>🗑️ Delete User</button>
+          </div>
+        </div>}
+      </div>
+    </div>}
+    {/* Enrollment Code Management */}
+    {/* ENROLLMENT MANAGER DISABLED — re-enable later by uncommenting
+    <EnrollmentManager/>
+    */}
+  </div>);
+}
+
+function EnrollmentManager(){
+  const[code,setCode]=useState("");const[saved,setSaved]=useState(false);const[loading,setLoading]=useState(true);
+  useEffect(()=>{getEnrollCode().then(c=>{setCode(c);setLoading(false)})},[]);
+  const save=async()=>{if(code.trim().length<4)return;await setEnrollCode(code.trim().toUpperCase());setSaved(true);setTimeout(()=>setSaved(false),2000)};
+  return(<div style={{marginTop:32,padding:20,background:"var(--bg-card)",border:"1px solid var(--border)",borderRadius:12}}>
+    <div style={{fontSize:15,fontWeight:600,marginBottom:4}}>🔐 Enrollment Code</div>
+    <div style={{fontSize:12,color:"var(--text-muted)",marginBottom:16}}>Trainees must enter this code to create an account. Change it anytime to control who can register. Share this code only with trainees you want to enroll.</div>
+    <div style={{display:"flex",gap:8,alignItems:"center"}}>
+      <input value={code} onChange={e=>setCode(e.target.value.toUpperCase())} style={{flex:1,padding:"10px 14px",background:"var(--bg-input)",border:"1px solid var(--border)",borderRadius:8,color:"var(--text-primary)",fontSize:14,fontFamily:"inherit",letterSpacing:2,fontWeight:600,outline:"none"}} placeholder="ENROLLMENT-CODE"/>
+      <button className="btn-primary" onClick={save} style={{padding:"10px 16px",whiteSpace:"nowrap"}}>{saved?"✓ Saved":"Save Code"}</button>
+    </div>
+    <div style={{fontSize:11,color:"var(--text-muted)",marginTop:8}}>Current code: <strong style={{color:"var(--warning)",letterSpacing:1}}>{loading?"...":code}</strong> — give this to new trainees so they can register.</div>
+  </div>);
+}
+
+// ─── SETTINGS PAGE ──────────────────────────────────────────────────────────
+function SettingsPage({progress,updateProgress}){
+  const[oldPw,setOldPw]=useState("");const[newPw,setNewPw]=useState("");const[confirmPw,setConfirmPw]=useState("");
+  const[msg,setMsg]=useState("");const[msgType,setMsgType]=useState("");
+
+  const changePw=async()=>{
+    setMsg("");setMsgType("");
+    if(!oldPw){setMsg("Enter your current password.");setMsgType("err");return;}
+    if(!newPw||newPw.length<4){setMsg("New password must be at least 4 characters.");setMsgType("err");return;}
+    if(newPw!==confirmPw){setMsg("Passwords don't match.");setMsgType("err");return;}
+    const key=progress.user.toLowerCase().replace(/\s+/g,"-");
+    // Check if admin with built-in account
+    const isBuiltInAdmin=ADMIN_ACCOUNTS[progress.user?.toLowerCase()];
+    if(isBuiltInAdmin){
+      // Admin: check all alias keys for current password
+      const allKeys=[key];
+      // Add all ADMIN_ACCOUNTS aliases that point to the same person
+      Object.entries(ADMIN_ACCOUNTS).forEach(([alias,info])=>{
+        if(info.fullName===isBuiltInAdmin.fullName){const ak=alias.replace(/\s+/g,"-");if(!allKeys.includes(ak))allKeys.push(ak)}
+      });
+      let currentPw=ADMIN_PASSWORD;
+      for(const pk of allKeys){try{const sa=await loadAccount(pk);if(sa?.password){currentPw=sa.password;break;}}catch{}}
+      if(oldPw!==currentPw){setMsg("Current password is incorrect.");setMsgType("err");return;}
+      // Save new password under ALL alias keys so any login name works
+      for(const pk of allKeys){
+        const stored=await loadAccount(pk).catch(()=>null);
+        const acctData=stored||{fullName:isBuiltInAdmin.fullName,email:isBuiltInAdmin.email,telegram:isBuiltInAdmin.telegram,createdAt:new Date().toISOString()};
+        acctData.password=newPw;
+        await saveAccount(pk,acctData);
+      }
+    }else{
+      // Regular user
+      const acct=await loadAccount(key);
+      if(!acct){setMsg("Account not found.");setMsgType("err");return;}
+      if(acct.password!==oldPw){setMsg("Current password is incorrect.");setMsgType("err");return;}
+      acct.password=newPw;
+      await saveAccount(key,acct);
+    }
+    setOldPw("");setNewPw("");setConfirmPw("");
+    setMsg("Password changed successfully!");setMsgType("ok");
+  };
+
+  return(<div className="fade-in" style={{maxWidth:600}}>
+    <h1 style={{fontSize:24,fontWeight:700,marginBottom:4}}>⚙️ Settings</h1>
+    <p style={{color:"var(--text-secondary)",fontSize:14,marginBottom:28}}>Manage your account settings.</p>
+
+    <div style={{background:"var(--bg-card)",border:"1px solid var(--border)",borderRadius:12,padding:24,marginBottom:20}}>
+      <div style={{fontSize:15,fontWeight:600,marginBottom:4}}>👤 Account Info</div>
+      <div style={{display:"grid",gap:8,marginTop:12}}>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><span style={{color:"var(--text-muted)"}}>Name</span><span>{progress.user}</span></div>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><span style={{color:"var(--text-muted)"}}>Email</span><span>{progress.email||"—"}</span></div>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><span style={{color:"var(--text-muted)"}}>Telegram</span><span style={{color:"var(--cyan)"}}>{progress.telegram?"@"+progress.telegram:"—"}</span></div>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><span style={{color:"var(--text-muted)"}}>Country</span><span>{progress.country||"—"}</span></div>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><span style={{color:"var(--text-muted)"}}>Role</span><span>{progress.isAdmin?<span className="admin-badge">Admin</span>:"Chatter Trainee"}</span></div>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><span style={{color:"var(--text-muted)"}}>Joined</span><span>{new Date(progress.startedAt).toLocaleDateString()}</span></div>
+      </div>
+    </div>
+
+    <div style={{background:"var(--bg-card)",border:"1px solid var(--border)",borderRadius:12,padding:24}}>
+      <div style={{fontSize:15,fontWeight:600,marginBottom:4}}>🔑 Change Password</div>
+      <div style={{fontSize:12,color:"var(--text-muted)",marginBottom:16}}>Update your account password.</div>
+      <div className="input-group"><label>Current Password</label><input type="password" value={oldPw} onChange={e=>setOldPw(e.target.value)} placeholder="Enter current password..."/></div>
+      <div className="input-group"><label>New Password</label><input type="password" value={newPw} onChange={e=>setNewPw(e.target.value)} placeholder="Enter new password..."/></div>
+      <div className="input-group"><label>Confirm New Password</label><input type="password" value={confirmPw} onChange={e=>setConfirmPw(e.target.value)} placeholder="Confirm new password..." onKeyDown={e=>e.key==="Enter"&&changePw()}/></div>
+      <button className="btn-primary" onClick={changePw}>Update Password</button>
+      {msg&&<div style={{marginTop:12,fontSize:13,fontWeight:500,color:msgType==="ok"?"var(--success)":"var(--danger)"}}>{msg}</div>}
+    </div>
+  </div>);
+}
+
+// ─── SIDEBAR ─────────────────────────────────────────────────────────────────
+function Sidebar({progress,view,setView,sidebarOpen,setSidebarOpen}){
+  const{days}=TRAINING_DATA;const adm=progress.isAdmin;
+  const unlocked=idx=>{if(adm)return true;if(idx===0)return true;return days[idx-1].modules.every(m=>progress.completedModules.includes(m.id))};
+  return(<div className={`sidebar ${sidebarOpen?"open":""}`}>
+    <div className="sidebar-header"><div className="sidebar-logo">CHAT<span>STARS</span> ACADEMY</div></div>
+    <div className="sidebar-nav">
+      {adm&&<><div className="nav-label">Admin</div>
+        <div className={`nav-item ${view.page==="admin"?"active":""}`} onClick={()=>{setView({page:"admin"});setSidebarOpen(false)}}>
+          <span className="icon">👑</span>Admin Panel<span className="admin-badge" style={{marginLeft:"auto"}}>Admin</span>
+        </div></>}
+      <div className="nav-label">Main</div>
+      <div className={`nav-item ${view.page==="dashboard"?"active":""}`} onClick={()=>{setView({page:"dashboard"});setSidebarOpen(false)}}><span className="icon">📊</span>Dashboard</div>
+      <div className="nav-label">Training Phases</div>
+      {days.map((day,idx)=>{const ul=unlocked(idx);const done=day.modules.every(m=>progress.completedModules.includes(m.id));const cnt=day.modules.filter(m=>progress.completedModules.includes(m.id)).length;
+        return(<div key={day.id} className={`nav-item ${view.page==="day"&&view.dayIdx===idx?"active":""} ${!ul?"locked":""}`}
+          onClick={()=>ul&&(setView({page:"day",dayIdx:idx}),setSidebarOpen(false))}>
+          <span className="icon">{day.icon}</span>{day.title}{!ul?<span className="lock-icon">🔒</span>:<span className="badge">{done?"✓":`${cnt}/${day.modules.length}`}</span>}
+        </div>)})}
+      <div className="nav-label">Account</div>
+      <div className={`nav-item ${view.page==="settings"?"active":""}`} onClick={()=>{setView({page:"settings"});setSidebarOpen(false)}}><span className="icon">⚙️</span>Settings</div>
+    </div>
+    <div className="sidebar-footer">
+      <div className={`avatar ${adm?"adm":""}`}>{progress.user?.[0]?.toUpperCase()||"?"}</div>
+      <div className="user-info"><div className="name">{progress.user} {adm&&<span className="admin-badge">Admin</span>}</div><div className="role">{adm?"Administrator":"Chatter Trainee"}</div></div>
+    </div>
+  </div>);
+}
+
+// ─── TRAINEE DASHBOARD ───────────────────────────────────────────────────────
+function Dashboard({progress,setView}){
+  const{days}=TRAINING_DATA;const total=days.reduce((s,d)=>s+d.modules.length,0);const done=progress.completedModules.length;
+  const pct=Math.round(done/total*100);const tq=days.reduce((s,d)=>s+d.modules.filter(m=>m.quiz?.length>0).length,0);
+  const pq=Object.values(progress.quizScores).filter(s=>s>=70).length;
+  const curIdx=days.findIndex((d,i)=>{if(i===0)return!d.modules.every(m=>progress.completedModules.includes(m.id));return days[i-1].modules.every(m=>progress.completedModules.includes(m.id))&&!d.modules.every(m=>progress.completedModules.includes(m.id))});
+  const ul=idx=>{if(progress.isAdmin)return true;if(idx===0)return true;return days[idx-1].modules.every(m=>progress.completedModules.includes(m.id))};
+  return(<div className="fade-in">
+    <div style={{marginBottom:32}}><h1 style={{fontSize:26,fontWeight:700,marginBottom:4}}>Welcome back, {progress.user} 👋</h1>
+      <p style={{color:"var(--text-secondary)",fontSize:14}}>{progress.isAdmin?"Full admin access — all phases unlocked.":"Continue your training — stay sharp, stay consistent."}</p></div>
+    <div className="stats-row">
+      <div className="stat-card"><div className="label">Overall Progress</div><div className="value" style={{color:"var(--accent)"}}>{pct}%</div><ProgressBar value={pct}/></div>
+      <div className="stat-card"><div className="label">Modules Done</div><div className="value">{done}<span style={{fontSize:14,color:"var(--text-muted)"}}>/{total}</span></div><div className="sub">across all phases</div></div>
+      <div className="stat-card"><div className="label">Quizzes Passed</div><div className="value" style={{color:"var(--success)"}}>{pq}<span style={{fontSize:14,color:"var(--text-muted)"}}>/{tq}</span></div><div className="sub">70% to pass</div></div>
+      <div className="stat-card"><div className="label">Current Phase</div><div className="value">{curIdx>=0?`Day ${curIdx+1}`:"Done ✓"}</div><div className="sub">{curIdx>=0?days[curIdx].subtitle:"All complete"}</div></div>
+    </div>
+    <h3 style={{fontSize:16,fontWeight:600,marginBottom:16}}>Training Phases</h3>
+    <div className="day-cards">{days.map((day,idx)=>{const u=ul(idx);const md=day.modules.filter(m=>progress.completedModules.includes(m.id)).length;const p2=Math.round(md/day.modules.length*100);
+      return(<div key={day.id} className={`day-card ${!u?"locked":""}`} onClick={()=>u&&setView({page:"day",dayIdx:idx})}>
+        <div className="day-icon" style={{background:`${day.color}18`,color:day.color}}>{day.icon}</div>
+        <div className="day-info"><div className="day-title">{day.title} {!u&&"🔒"}</div><div className="day-sub">{day.subtitle}</div><div className="day-desc">{day.description.slice(0,120)}...</div></div>
+        <div className="day-progress"><div className="pct" style={{color:p2===100?"var(--success)":day.color}}>{p2}%</div><div className="modules-count">{md}/{day.modules.length}</div><div style={{marginTop:8,width:80}}><ProgressBar value={p2} color={p2===100?"var(--success)":day.color}/></div></div>
+      </div>)})}</div>
+  </div>);
+}
+
+// ─── DAY VIEW ────────────────────────────────────────────────────────────────
+function DayView({dayIdx,progress,setView}){
+  const day=TRAINING_DATA.days[dayIdx];const adm=progress.isAdmin;
+  const ul=i=>{if(adm)return true;if(i===0)return true;return progress.completedModules.includes(day.modules[i-1].id)};
+  const fi=day.modules.findIndex(m=>!progress.completedModules.includes(m.id));
+  return(<div className="fade-in">
+    <div style={{marginBottom:24}}>
+      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
+        <span style={{fontSize:32}}>{day.icon}</span>
+        <div><h1 style={{fontSize:22,fontWeight:700}}>{day.title}</h1><div style={{fontSize:11,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:1}}>{day.subtitle}</div></div>
+        {day.isGateDay&&<span style={{marginLeft:"auto",fontSize:10,padding:"4px 10px",borderRadius:6,background:"rgba(239,68,68,.1)",color:"var(--danger)",fontWeight:600,textTransform:"uppercase",letterSpacing:1,border:"1px solid rgba(239,68,68,.2)"}}>Gate Day</span>}
+        {adm&&<span className="admin-badge">All Unlocked</span>}
+      </div>
+      <p style={{fontSize:14,color:"var(--text-secondary)",lineHeight:1.6}}>{day.description}</p>
+    </div>
+    {day.videoUrl&&<div className="video-embed" style={{marginBottom:24}}><iframe src={day.videoUrl} allow="autoplay; encrypted-media" allowFullScreen/></div>}
+    <h3 style={{fontSize:15,fontWeight:600,marginBottom:4}}>Modules</h3>
+    <p style={{fontSize:12,color:"var(--text-muted)",marginBottom:16}}>{adm?"Admin — all accessible.":"Complete in order. 70%+ to pass quizzes."}</p>
+    <div className="module-list">{day.modules.map((mod,idx)=>{const done=progress.completedModules.includes(mod.id);const u=ul(idx);const cur=idx===fi;
+      return(<div key={mod.id} className={`module-card ${done?"completed":""} ${cur&&!adm?"active-module":""} ${!u&&!done?"locked":""}`}
+        onClick={()=>(u||done)&&setView({page:"module",dayIdx,modIdx:idx})}>
+        <div className={`module-status ${done?"done":cur?"current":""}`}>{done?"✓":cur?"→":!u?"🔒":idx+1}</div>
+        <div className="module-info"><div className="title">{mod.title}</div>
+          <div className="meta">{mod.duration}{mod.quiz?.length>0&&` · ${mod.quiz.length} questions`}{mod.exercises?.length>0&&` · ${mod.exercises.length} exercises`}{progress.quizScores[mod.id]!==undefined&&` · Score: ${Math.round(progress.quizScores[mod.id])}%`}</div>
+        </div><div className="type-badge">{mod.type}</div>
+      </div>)})}</div>
+  </div>);
+}
+
+// ─── MODULE VIEW ─────────────────────────────────────────────────────────────
+function ModuleView({dayIdx,modIdx,progress,updateProgress,setView}){
+  const day=TRAINING_DATA.days[dayIdx];const mod=day.modules[modIdx];
+  const[qa,setQa]=useState({});const[qs,setQs]=useState(false);const[et,setEt]=useState(progress.exerciseResponses[mod.id]||{});
+  const[grading,setGrading]=useState(false);const[ag,setAg]=useState(null);
+  const adm=progress.isAdmin;const done=progress.completedModules.includes(mod.id);
+  const hq=mod.quiz&&mod.quiz.length>0;const he=mod.exercises&&mod.exercises.length>0;
+
+  const submitQuiz=()=>{setQs(true);const c=mod.quiz.filter((q,i)=>qa[i]===q.answer).length;const sc=c/mod.quiz.length*100;
+    const np={...progress,lastActive:new Date().toISOString(),quizScores:{...progress.quizScores,[mod.id]:sc}};
+    if((sc>=70||adm)&&!done)np.completedModules=[...progress.completedModules,mod.id];updateProgress(np)};
+
+  // ── AI Detection helper ──
+  const detectAI=(text)=>{
+    if(!text||text.length<30)return"none";
+    let score=0;
+    const t=text.trim();
+    // Formal indicators
+    const formalPhrases=["furthermore","in conclusion","it is worth noting","in my experience","i believe that","additionally","moreover","nevertheless","consequently","significantly","comprehensive","facilitate","utilize","implement","demonstrate","various aspects","in terms of","with regard to","it's important to","i would say that","overall i think","to be honest"];
+    formalPhrases.forEach(p=>{if(t.toLowerCase().includes(p))score+=8});
+    // Perfect structure (every sentence similar length)
+    const sents=t.split(/[.!?]+/).filter(s=>s.trim().length>5);
+    if(sents.length>=3){const lens=sents.map(s=>s.trim().length);const avg=lens.reduce((a,b)=>a+b,0)/lens.length;const variance=lens.reduce((a,l)=>a+Math.abs(l-avg),0)/lens.length;if(variance<15)score+=15}
+    // No contractions
+    if(!/\b(don't|can't|won't|I'm|I've|I'll|it's|that's|there's|wouldn't|couldn't|shouldn't|isn't|aren't|wasn't|weren't|didn't|doesn't|hasn't|haven't)\b/i.test(t)&&t.length>100)score+=12;
+    // No personality markers
+    if(!/[!]{2}|lol|haha|tbh|ngl|lowkey|kinda|gonna|wanna|gotta|yeah|nah|honestly|like,/i.test(t)&&t.length>80)score+=5;
+    // Generic/vague content
+    if(/passion|dedicated|committed|strive|thrive|excellence|growth mindset|continuous improvement|team player|driven individual/i.test(t))score+=10;
+    // Bulleted structure disguised
+    if((t.match(/\. [A-Z]/g)||[]).length>=4&&sents.length>=4)score+=5;
+    if(score>=35)return"certain";if(score>=25)return"high";if(score>=15)return"medium";if(score>=8)return"low";return"none";
+  };
+
+  const gradeLocally=(exercises,responses)=>{
+    const notes=[];let totalAiRisk="none";const aiLevels=[];
+    const grades=exercises.map((ex,i)=>{
+      const resp=(responses[i]||"").trim();
+      if(resp.length<20)return{score:0,feedback:"Response too short. Write 2-4 full sentences.",ai_detected:"none"};
+      const aiLevel=detectAI(resp);
+      aiLevels.push(aiLevel);
+      if(aiLevel==="certain"||aiLevel==="high")return{score:5,feedback:"⚠️ AI-generated response detected. Write your own answers without ChatGPT or any AI tools.",ai_detected:aiLevel};
+      const words=resp.toLowerCase().split(/\s+/);
+      const uniqueWords=new Set(words);
+      const repetitionRatio=uniqueWords.size/words.length;
+      if(repetitionRatio<0.3)return{score:5,feedback:"Extremely repetitive text. Write genuine sentences.",ai_detected:aiLevel};
+      if(repetitionRatio<0.45)return{score:15,feedback:"Too much repeated content.",ai_detected:aiLevel};
+      const chunks=[];for(let j=0;j<words.length-2;j++)chunks.push(words.slice(j,j+3).join(" "));
+      const chunkSet=new Set(chunks);
+      if(chunks.length>3&&chunkSet.size<chunks.length*0.5)return{score:10,feedback:"Repeated phrases detected.",ai_detected:aiLevel};
+      const sentences=resp.split(/[.!?]+/).filter(s=>s.trim().length>3);
+      if(sentences.length<2)return{score:30,feedback:"Write at least 2 complete sentences.",ai_detected:aiLevel};
+      const startsWithCap=/^[A-Z]/.test(resp);
+      const fillerWords=["work","football","tv","watch","go","thing","stuff","etc"];
+      const contentWords=words.filter(w=>w.length>3&&!fillerWords.includes(w));
+      if(contentWords.length<5)return{score:25,feedback:"Response lacks substance.",ai_detected:aiLevel};
+      let score=50;
+      if(sentences.length>=2)score+=10;if(sentences.length>=3)score+=5;
+      if(startsWithCap)score+=5;if(uniqueWords.size>15)score+=10;
+      if(contentWords.length>10)score+=10;if(repetitionRatio>0.7)score+=5;
+      if(resp.includes(","))score+=3;if(resp.endsWith("."))score+=2;
+      if(aiLevel==="medium")score=Math.min(score,60);
+      score=Math.min(score,85);
+      const fb=score>=70?"Adequate response.":score>=50?"Needs more detail and better structure.":"Poor quality. Write complete, thoughtful sentences.";
+      return{score,feedback:fb,ai_detected:aiLevel};
+    });
+    // Generate detailed candidate notes
+    const allResponses=Object.values(responses).filter(Boolean).map(r=>(r||"").trim());
+    const avgLen=allResponses.reduce((s,r)=>s+r.length,0)/Math.max(allResponses.length,1);
+    const allWords=allResponses.join(" ").toLowerCase().split(/\s+/);
+    const allUnique=new Set(allWords);
+    const vocabRichness=allWords.length>10?allUnique.size/allWords.length:0;
+    const hasAI=aiLevels.some(l=>l==="high"||l==="certain");
+    const hasSomeAI=aiLevels.some(l=>l==="medium");
+    const avgSc=grades.reduce((s,g)=>s+g.score,0)/grades.length;
+    // English quality notes
+    if(hasAI)notes.push("⚠️ AI/ChatGPT detected — cannot assess genuine ability");
+    else if(hasSomeAI)notes.push("⚠️ Some responses may be AI-assisted — monitor closely");
+    if(!hasAI&&vocabRichness>0.65&&avgLen>150)notes.push("Strong vocabulary range — writes with variety and depth");
+    if(!hasAI&&vocabRichness>0.7&&avgSc>=75)notes.push("Natural English flow — potential native-level communicator");
+    if(vocabRichness<0.4&&!hasAI)notes.push("Limited vocabulary — may struggle with diverse fan conversations");
+    // Effort & engagement
+    if(avgLen>250&&!hasAI)notes.push("High effort — gives detailed, thoughtful responses");
+    else if(avgLen>150&&!hasAI)notes.push("Good engagement — adequate detail in responses");
+    else if(avgLen<80)notes.push("Minimal effort — very short responses, low engagement");
+    // Sentence structure
+    const avgSentences=allResponses.reduce((s,r)=>s+r.split(/[.!?]+/).filter(x=>x.trim().length>3).length,0)/Math.max(allResponses.length,1);
+    if(avgSentences>=3&&!hasAI)notes.push("Good sentence structure — writes in complete, varied sentences");
+    if(avgSentences<1.5)notes.push("Weak sentence construction — struggles to write complete thoughts");
+    // Personality indicators
+    const hasContractions=allResponses.some(r=>/\b(don't|can't|won't|I'm|I've|it's|that's|didn't)\b/i.test(r));
+    if(hasContractions&&!hasAI)notes.push("Conversational writing style — uses natural contractions");
+    // Overall assessment
+    if(avgSc>=85&&!hasAI)notes.push("🌟 Strong candidate — recommend for fast-track");
+    else if(avgSc>=70&&!hasAI)notes.push("Solid performer — meets standard, coach for improvement");
+    else if(avgSc>=50)notes.push("Below average — needs significant improvement to be chat-ready");
+    else if(avgSc<50)notes.push("Weak candidate — unlikely to perform in live chat environment");
+    totalAiRisk=aiLevels.includes("certain")?"certain":aiLevels.includes("high")?"high":aiLevels.includes("medium")?"medium":"none";
+    const overall=Math.round(avgSc);
+    return{grades,overall,pass:overall>=70,ai_risk:totalAiRisk,candidate_notes:notes};
+  };
+
+  const submitExercises=async()=>{
+    const filled=Object.values(et).filter(t=>t.trim().length>20);if(filled.length<(mod.exercises?.length||0)&&!adm)return;
+    setGrading(true);const np={...progress,lastActive:new Date().toISOString(),exerciseResponses:{...progress.exerciseResponses,[mod.id]:et}};
+    let result=null;
+    // Try Netlify serverless function
+    try{
+      const ac=new AbortController();const to=setTimeout(()=>ac.abort(),6000);
+      const r=await fetch("/api/grade",{method:"POST",headers:{"Content-Type":"application/json"},signal:ac.signal,
+        body:JSON.stringify({exercises:mod.exercises.map((ex,i)=>({prompt:ex.prompt,response:et[i]||""})),moduleContext:mod.title+" - "+day.title,candidateName:progress.user})});
+      clearTimeout(to);
+      if(r.ok){const d=await r.json();if(d.grades&&d.overall!==undefined&&!d.error)result=d;}
+    }catch(e){console.log("API grade failed, using local:",e.message)}
+    // If API didn't work, use local grader immediately (free, no API needed)
+    if(!result){result=gradeLocally(mod.exercises,et);}
+    setAg(result);
+    // Store candidate notes and AI risk on progress
+    if(result.candidate_notes){np.candidateNotes={...(progress.candidateNotes||{}),[mod.id]:result.candidate_notes}}
+    if(result.ai_risk&&result.ai_risk!=="none"){np.aiFlags={...(progress.aiFlags||{}),[mod.id]:result.ai_risk}}
+    if((result.pass||adm)&&!done){np.completedModules=[...progress.completedModules,mod.id];np.quizScores={...progress.quizScores,[mod.id]:result.overall}}
+    updateProgress(np);setGrading(false);};
+
+  const markDone=()=>{if(!done){const np={...progress,lastActive:new Date().toISOString(),completedModules:[...progress.completedModules,mod.id]};updateProgress(np)}};
+  const adminDone=()=>{if(!done){const np={...progress,lastActive:new Date().toISOString(),completedModules:[...progress.completedModules,mod.id],quizScores:{...progress.quizScores,[mod.id]:100}};updateProgress(np)}};
+
+  if(mod.type==="graduation")return(<div className="graduation-view fade-in">
+    <div className="trophy">🎓</div>
+    <h1>Congratulations, {progress.user}!</h1>
+    <p>{mod.content}</p>
+    <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",marginTop:8}}>
+      <a href="https://fe02gsro908.typeform.com/to/LtaKFSnE" target="_blank" rel="noopener" style={{display:"inline-block",padding:"14px 32px",background:"linear-gradient(135deg,#6366f1,#ec4899)",color:"#fff",textDecoration:"none",fontSize:15,fontWeight:700,borderRadius:10,transition:"transform 0.2s"}}>Apply to Work With Us →</a>
+      <button className="btn-secondary" onClick={()=>setView({page:"dashboard"})}>Return to Dashboard</button>
+    </div>
+    <p style={{fontSize:12,color:"var(--text-muted)",marginTop:16}}>Your training results and scores are saved. Our team will review your application alongside your academy performance.</p>
+  </div>);
+
+  const hasNext=modIdx<day.modules.length-1;
+  return(<div className="content-view fade-in">
+    <div className="content-header"><h1>{mod.title}</h1>
+      <div className="meta-row">
+        <span className="meta-item">⏱ {mod.duration}</span><span className="meta-item" style={{textTransform:"capitalize"}}>📝 {mod.type}</span>
+        {done&&<span className="meta-item" style={{color:"var(--success)"}}>✓ Completed</span>}
+        {progress.quizScores[mod.id]!==undefined&&<span className="meta-item" style={{color:progress.quizScores[mod.id]>=70?"var(--success)":"var(--danger)"}}>Score: {Math.round(progress.quizScores[mod.id])}%</span>}
+        {adm&&!done&&<button className="btn-danger" onClick={adminDone} style={{marginLeft:"auto"}}>⚡ Admin: Force Complete</button>}
+      </div>
+    </div>
+    <div className="content-body">{mod.content}</div>
+
+    {he&&<div style={{marginBottom:32}}>
+      <h3 style={{fontSize:16,fontWeight:600,marginBottom:16}}>✍️ Exercises</h3>
+      {mod.exercises.map((ex,i)=><div key={i} className="exercise-card">
+        <div className="prompt">{ex.prompt}</div>{ex.hint&&<div className="hint">{ex.hint}</div>}
+        <textarea value={et[i]||""} onChange={e=>setEt(p=>({...p,[i]:e.target.value}))} placeholder="Write your response (2–4 full sentences)..." disabled={done&&!adm}/>
+        <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
+          <span style={{fontSize:11,color:(et[i]?.trim().length||0)>=20?"var(--success)":"var(--text-muted)"}}>{(et[i]?.trim().length||0)>=20?"✓ Ready":"Write at least 2–4 full sentences"}</span>
+          <span style={{fontSize:11,color:(et[i]?.trim().length||0)>=20?"var(--success)":"var(--text-muted)"}}>{et[i]?.trim().length||0} chars</span>
+        </div>
+        {ag?.grades?.[i]&&<div style={{marginTop:8,fontSize:12,display:"flex",gap:12,alignItems:"center",flexWrap:"wrap"}}>
+          <span style={{color:ag.grades[i].score>=70?"var(--success)":"var(--danger)",fontWeight:600}}>{ag.grades[i].score}%</span>
+          <span style={{color:"var(--text-muted)"}}>{ag.grades[i].feedback}</span>
+          {ag.grades[i].ai_detected&&ag.grades[i].ai_detected!=="none"&&ag.grades[i].ai_detected!=="low"&&<span style={{fontSize:10,padding:"2px 6px",borderRadius:4,fontWeight:600,background:ag.grades[i].ai_detected==="certain"||ag.grades[i].ai_detected==="high"?"rgba(239,68,68,0.15)":"rgba(245,158,11,0.15)",color:ag.grades[i].ai_detected==="certain"||ag.grades[i].ai_detected==="high"?"var(--danger)":"var(--warning)"}}>🤖 {ag.grades[i].ai_detected==="certain"?"AI DETECTED":ag.grades[i].ai_detected==="high"?"LIKELY AI":"POSSIBLY AI"}</span>}
+        </div>}
+      </div>)}
+      {!done&&!ag&&<div>{(()=>{const filled=Object.values(et).filter(t=>t?.trim().length>20).length;const total=mod.exercises.length;const ready=adm||filled>=total;return(<>
+        {!ready&&<div style={{fontSize:12,color:"var(--warning)",marginBottom:10,padding:"10px 14px",background:"rgba(245,158,11,0.08)",borderRadius:8,border:"1px solid rgba(245,158,11,0.2)"}}>⚠️ {filled}/{total} responses meet the minimum length. Each answer must be at least 2–4 full sentences (20+ characters) before you can submit.</div>}
+        <button className="btn-primary" onClick={submitExercises} disabled={grading||!ready}>{grading?"AI Grading...":"Submit for AI Grading"}</button>
+      </>)})()}
+        {grading&&<div className="grading-indicator"><div className="dot"/><div className="dot" style={{animationDelay:".3s"}}/><div className="dot" style={{animationDelay:".6s"}}/> Analyzing...</div>}</div>}
+      {ag&&<div>
+        {ag.ai_risk&&(ag.ai_risk==="high"||ag.ai_risk==="certain")&&<div style={{padding:"14px 18px",borderRadius:10,marginBottom:12,background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",fontSize:13,fontWeight:600,color:"var(--danger)"}}>🤖 AI/ChatGPT use detected. Write your own responses without AI assistance. AI-generated answers are automatically failed.</div>}
+        {ag.ai_risk==="medium"&&<div style={{padding:"14px 18px",borderRadius:10,marginBottom:12,background:"rgba(245,158,11,0.1)",border:"1px solid rgba(245,158,11,0.3)",fontSize:13,fontWeight:500,color:"var(--warning)"}}>⚠️ Some responses flagged as potentially AI-generated. Make sure you write all answers yourself.</div>}
+        <div className={`quiz-result ${ag.pass?"pass":"fail"}`}>{ag.pass?`✓ Passed — ${ag.overall}%`:`✗ ${ag.overall}% — Need 70%. Review and retry.`}</div>
+      </div>}
+    </div>}
+
+    {hq&&<div className="quiz-section">
+      <h3>📋 Knowledge Check {done&&<span style={{fontSize:12,color:"var(--success)",fontWeight:400}}>— Done</span>}</h3>
+      {mod.quiz.map((q,qi)=><div key={qi} className="quiz-card"><div className="question">{qi+1}. {q.q}</div>
+        <div className="options">{q.options.map((o,oi)=>{let c="quiz-option";if(qs){if(oi===q.answer)c+=" correct";else if(qa[qi]===oi)c+=" incorrect"}else if(qa[qi]===oi)c+=" selected";
+          return(<div key={oi} className={c} onClick={()=>!qs&&setQa(p=>({...p,[qi]:oi}))}><span className="letter">{String.fromCharCode(65+oi)}</span>{o}</div>)})}</div>
+      </div>)}
+      {!qs&&!done?<button className="btn-primary" onClick={submitQuiz} disabled={Object.keys(qa).length<mod.quiz.length}>Submit Answers</button>
+        :qs&&<div className={`quiz-result ${(progress.quizScores[mod.id]>=70||adm)?"pass":"fail"}`}>{(progress.quizScores[mod.id]>=70||adm)?`✓ Passed — ${Math.round(progress.quizScores[mod.id])}%`:`✗ ${Math.round(progress.quizScores[mod.id])}% — Need 70%.`}</div>}
+    </div>}
+
+    {!hq&&!he&&!done&&<button className="btn-success" onClick={markDone} style={{marginTop:16}}>✓ Mark Complete</button>}
+    <div className="actions-row">
+      <button className="btn-secondary" onClick={()=>setView({page:"day",dayIdx})}>← {day.title}</button>
+      {hasNext&&(done||adm)&&<button className="btn-primary" onClick={()=>setView({page:"module",dayIdx,modIdx:modIdx+1})}>Next Module →</button>}
+      {!hasNext&&(done||adm)&&dayIdx<TRAINING_DATA.days.length-1&&<button className="btn-primary" onClick={()=>setView({page:"day",dayIdx:dayIdx+1})}>Next Phase →</button>}
+    </div>
+  </div>);
+}
+
+// ─── MAIN APP ────────────────────────────────────────────────────────────────
+function App(){
+  const[progress,setProgress]=useState(null);const[view,setView]=useState({page:"dashboard"});const[sb,setSb]=useState(false);const[loading,setLoading]=useState(true);
+  useEffect(()=>{loadProgress().then(s=>{if(s?.user)setProgress(s);setLoading(false)})},[]);
+  const update=useCallback(async np=>{np.lastActive=new Date().toISOString();setProgress(np);await saveProgress(np)},[]);
+  const loginFromAccount=useCallback(async(acct)=>{
+    const isBuiltIn=acct.isBuiltInAdmin||false;
+    const existingKey=SP+acct.fullName.toLowerCase().replace(/\s+/g,"-");
+    let existing=null;
+    try{const r=await window.storage.get(existingKey,true);if(r?.value)existing=JSON.parse(r.value)}catch{}
+    if(existing&&existing.user){
+      existing.lastActive=new Date().toISOString();
+      existing.email=acct.email;existing.telegram=acct.telegram;if(acct.country)existing.country=acct.country;
+      if(isBuiltIn)existing.isAdmin=true;
+      setProgress(existing);await saveProgress(existing);
+    }else{
+      const p={...initProgress(),user:acct.fullName,email:acct.email,telegram:acct.telegram,country:acct.country||null,isAdmin:isBuiltIn||isAdminUser(acct.fullName)};
+      setProgress(p);await saveProgress(p);
+    }
+    if(isBuiltIn||isAdminUser(acct.fullName))setView({page:"admin"});
+  },[]);
+  const registerAccount=useCallback(async(acct)=>{
+    const p={...initProgress(),user:acct.fullName,email:acct.email,telegram:acct.telegram,country:acct.country||null,isAdmin:isAdminUser(acct.fullName)};
+    setProgress(p);await saveProgress(p);
+    if(isAdminUser(acct.fullName))setView({page:"admin"});
+  },[]);
+  const signOut=useCallback(async()=>{setProgress(null);setView({page:"dashboard"});try{await window.storage.set(SK,JSON.stringify({user:null}))}catch{}},[]);
+
+  if(loading)return(<div className="login-screen"><style>{CSS}</style><div style={{color:"var(--text-muted)",fontSize:13}}>Loading...</div></div>);
+  if(!progress?.user)return(<><style>{CSS}</style><LoginScreen onLogin={loginFromAccount} onRegister={registerAccount}/></>);
+
+  const bc=()=>{
+    if(view.page==="admin")return[{label:"Admin Dashboard"}];if(view.page==="settings")return[{label:"Settings"}];if(view.page==="dashboard")return[{label:"Dashboard"}];
+    if(view.page==="day")return[{label:"Dashboard",onClick:()=>setView({page:"dashboard"})},{label:TRAINING_DATA.days[view.dayIdx].title}];
+    if(view.page==="module")return[{label:"Dashboard",onClick:()=>setView({page:"dashboard"})},{label:TRAINING_DATA.days[view.dayIdx].title,onClick:()=>setView({page:"day",dayIdx:view.dayIdx})},{label:TRAINING_DATA.days[view.dayIdx].modules[view.modIdx].title}];
+    return[];
+  };
+
+  return(<><style>{CSS}</style><div className="app">
+    <div className="mobile-toggle" onClick={()=>setSb(!sb)}>☰</div>
+    <Sidebar progress={progress} view={view} setView={setView} sidebarOpen={sb} setSidebarOpen={setSb}/>
+    <div className="main">
+      <div className="main-header">
+        <div className="breadcrumb">{bc().map((b,i,a)=><span key={i}>{b.onClick?<span style={{cursor:"pointer",color:"var(--text-muted)"}} onClick={b.onClick}>{b.label}</span>:<span className="current">{b.label}</span>}{i<a.length-1&&<span className="sep"> / </span>}</span>)}</div>
+        <button className="sign-out-btn" onClick={signOut}>Sign Out</button>
+      </div>
+      <div className="main-content">
+        {view.page==="admin"&&progress.isAdmin&&<AdminDashboard/>}
+        {view.page==="settings"&&<SettingsPage progress={progress} updateProgress={update}/>}
+        {view.page==="dashboard"&&<Dashboard progress={progress} setView={setView}/>}
+        {view.page==="day"&&<DayView dayIdx={view.dayIdx} progress={progress} setView={setView}/>}
+        {view.page==="module"&&<ModuleView dayIdx={view.dayIdx} modIdx={view.modIdx} progress={progress} updateProgress={update} setView={setView}/>}
+      </div>
+    </div>
+  </div></>);
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+
+</script>
+</body>
+</html>
