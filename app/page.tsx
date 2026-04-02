@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Creator, BOARD_COLORS, BOARD_ORDER } from "@/lib/types";
-import { fetchCreators, getActiveCreators, getBoards, getDailyTotals, getCompanyRatio, fmt, fmtFull, pct, colorFor } from "@/lib/data";
+import { fetchCreators, getActiveCreators, getMonthLabel, getBoards, getDailyTotals, getCompanyRatio, fmt, fmtFull, pct, colorFor } from "@/lib/data";
 import PipelineChart from "@/components/PipelineChart";
 import CreatorPanel from "@/components/CreatorPanel";
 import Link from "next/link";
@@ -28,8 +28,8 @@ export default function Dashboard() {
   const boards = getBoards(D);
   const top5 = [...active].sort((a, b) => b.run - a.run).slice(0, 5);
   const dayNames = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
-  const ydDate = new Date(2026, 2, lastDay + 1);
-  const ydLabel = `${dayNames[ydDate.getDay()]}, MAR ${lastDay + 1}`;
+  const ydDate = new Date(2026, new Date().getMonth(), lastDay + 1);
+  const ydLabel = `${dayNames[ydDate.getDay()]}, ${["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][new Date().getMonth()]} ${lastDay + 1}`;
 
   return (
     <>
