@@ -196,7 +196,14 @@ export function generateNotifications(D: Creator[]) {
   if (off.length > 0) notifs.push({ text: `${off.length} creators currently offboarded`, type: "info", time: "Today" });
   return notifs;
 }
-export function getCurrentMonth(): string { return ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"][new Date().getMonth()]; }
+export function getCurrentMonth(): string {
+  const now = new Date();
+  const months = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+  const idx = now.getMonth();
+  // If we're in the first 7 days of the month, default to the previous completed month
+  if (now.getDate() <= 7 && idx > 0) return months[idx - 1];
+  return months[idx];
+}
 export function getMonthLabel(): string { return new Date().toLocaleString("en-US", { month: "long", year: "numeric" }); }
 export function fmt(v: number): string { return "$" + Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
 export function fmtFull(v: number): string { return "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
