@@ -36,6 +36,7 @@ const NAV = [
     { href: "/offboarded", label: "Offboarded", icon: "userX" },
     { href: "/mass-messages", label: "Mass Messages", icon: "send" },
     { href: "/queue-manager", label: "Queue Tracker", icon: "bar" },
+    { href: "/infloww", label: "Infloww Analytics", icon: "trend" },
   ]},
   { group: "Management", items: [
     { href: "/team/general-manager", label: "General Manager", icon: "star" },

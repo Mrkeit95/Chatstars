@@ -12,6 +12,19 @@ async function fetchMonthCSV(month: string): Promise<string> {
   } catch { return ""; }
 }
 
+// Proper CSV line parser that handles quoted values with commas
+function parseCSVLine(line: string): string[] {
+  const result: string[] = []; let cur = ""; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') inQ = !inQ;
+    else if (ch === "," && !inQ) { result.push(cur.trim().replace(/^"|"$/g, "")); cur = ""; }
+    else cur += ch;
+  }
+  result.push(cur.trim().replace(/^"|"$/g, ""));
+  return result;
+}
+
 function parseMonthSummary(csv: string, monthName: string): string {
   if (!csv || csv.length < 100) return `${monthName}: No data available`;
   const rows = csv.split("\n");
@@ -23,7 +36,7 @@ function parseMonthSummary(csv: string, monthName: string): string {
   }
   
   // Find Running Sales column
-  const header = rows[headerIdx].split(",").map(c => c.replace(/"/g, "").trim().toUpperCase());
+  const header = parseCSVLine(rows[headerIdx]).map(c => c.toUpperCase());
   let runCol = header.findIndex(h => h.includes("RUNNING") && h.includes("SALES"));
   if (runCol === -1) runCol = 41;
   let goalCol = header.findIndex(h => h.includes("GOAL") && !h.includes("DAILY"));
@@ -45,7 +58,7 @@ function parseMonthSummary(csv: string, monthName: string): string {
   const agencyTotals: Record<string, { run: number; count: number }> = {};
 
   for (let i = headerIdx + 1; i < rows.length; i++) {
-    const cols = rows[i].split(",").map(c => c.replace(/"/g, "").trim());
+    const cols = parseCSVLine(rows[i]);
     const name = cols[teamsCol] || cols[0] || "";
     if (!name || name.length < 2 || /^(TOTAL|GRAND|SUM|BOARD|TEAMS|TRAINING)/i.test(name)) continue;
     
@@ -103,6 +116,46 @@ async function getMondayData(): Promise<string> {
   } catch { return "Monday.com error."; }
 }
 
+
+async function getInflowwSummary(): Promise<string> {
+  const apiKey = process.env.INFLOWW_API_KEY;
+  const oid = process.env.INFLOWW_OID;
+  if (!apiKey || !oid) return "Infloww not connected.";
+  const headers = { "Accept": "application/json", "Authorization": apiKey, "x-oid": oid };
+  try {
+    const [cRes, tRes, lRes, rRes] = await Promise.all([
+      fetch("https://openapi.infloww.com/v1/creators?limit=100", { headers }).then(r => r.json()).catch(() => null),
+      fetch("https://openapi.infloww.com/v1/transactions?limit=100", { headers }).then(r => r.json()).catch(() => null),
+      fetch("https://openapi.infloww.com/v1/links?limit=50", { headers }).then(r => r.json()).catch(() => null),
+      fetch("https://openapi.infloww.com/v1/refunds?limit=50", { headers }).then(r => r.json()).catch(() => null),
+    ]);
+    const creators = cRes?.data?.list || [];
+    const txns = tRes?.data?.list || [];
+    const links = lRes?.data?.list || [];
+    const refunds = rRes?.data?.list || [];
+    const totalGross = txns.reduce((a: number, t: any) => a + (parseFloat(t.amount) || 0), 0);
+    const totalNet = txns.reduce((a: number, t: any) => a + (parseFloat(t.net) || 0), 0);
+    const totalFees = txns.reduce((a: number, t: any) => a + (parseFloat(t.fee) || 0), 0);
+    const totalRefunds = refunds.reduce((a: number, r: any) => a + (r.paymentAmount || 0), 0);
+    const byType: Record<string, number> = {};
+    txns.forEach((t: any) => { byType[t.type || "Unknown"] = (byType[t.type || "Unknown"] || 0) + (parseFloat(t.net) || 0); });
+    const linkEarnings = links.reduce((a: number, l: any) => a + (l.earningsNet || 0), 0) / 100;
+    const linkSubs = links.reduce((a: number, l: any) => a + (l.subCount || 0), 0);
+    return `INFLOWW LIVE DATA:
+Connected creators: ${creators.length}
+${creators.map((c: any) => `- ${c.name || c.userName} (@${c.userName})`).join("\n")}
+
+Transactions (last ${txns.length}):
+Gross: $${Math.round(totalGross).toLocaleString()} | Net: $${Math.round(totalNet).toLocaleString()} | Fees: $${Math.round(totalFees).toLocaleString()}
+Revenue by type: ${Object.entries(byType).map(([t, v]) => `${t}: $${Math.round(v).toLocaleString()}`).join(", ")}
+
+Refunds: ${refunds.length} totaling $${Math.round(totalRefunds).toLocaleString()}
+
+Marketing Links: ${links.length} links, ${linkSubs} subscribers, $${Math.round(linkEarnings).toLocaleString()} net earnings
+Active campaigns: ${links.filter((l: any) => !l.finishedFlag).length}`;
+  } catch (e) { return "Infloww data fetch error."; }
+}
+
 export async function POST(req: NextRequest) {
   const { messages } = await req.json();
   const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
@@ -112,8 +165,9 @@ export async function POST(req: NextRequest) {
   const monthsToFetch = [MONTHS_ALL[curMonth], MONTHS_ALL[curMonth-1], MONTHS_ALL[curMonth-2], MONTHS_ALL[curMonth-3]].filter(Boolean);
   
   // Fetch all months + Monday in parallel
-  const [mondayData, ...monthCSVs] = await Promise.all([
+  const [mondayData, inflowwData, ...monthCSVs] = await Promise.all([
     getMondayData(),
+    getInflowwSummary(),
     ...monthsToFetch.map(m => fetchMonthCSV(m)),
   ]);
   
@@ -132,7 +186,10 @@ ${monthSummaries}
 
 ${mondayData}
 
+${inflowwData}
+
 You can answer ANY question about:
+- INFLOWW LIVE DATA: Real-time transactions, tips, messages, subscriptions, refunds, marketing links, fan spending
 - Where any creator is (board, agency, status, revenue for any month)
 - Revenue comparisons across months (April vs March vs Feb etc)
 - Board and agency performance for any month
