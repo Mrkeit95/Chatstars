@@ -125,9 +125,9 @@ async function getInflowwSummary(): Promise<string> {
   try {
     const [cRes, tRes, lRes, rRes] = await Promise.all([
       fetch("https://openapi.infloww.com/v1/creators?limit=100", { headers }).then(r => r.json()).catch(() => null),
-      fetch("https://openapi.infloww.com/v1/transactions?limit=100", { headers }).then(r => r.json()).catch(() => null),
+      fetch(`https://openapi.infloww.com/v1/transactions?limit=100&startTime=${Date.now() - 30*24*60*60*1000}&endTime=${Date.now()}`, { headers }).then(r => r.json()).catch(() => null),
       fetch("https://openapi.infloww.com/v1/links?limit=50", { headers }).then(r => r.json()).catch(() => null),
-      fetch("https://openapi.infloww.com/v1/refunds?limit=50", { headers }).then(r => r.json()).catch(() => null),
+      fetch(`https://openapi.infloww.com/v1/refunds?limit=100&startTime=${Date.now() - 30*24*60*60*1000}&endTime=${Date.now()}`, { headers }).then(r => r.json()).catch(() => null),
     ]);
     const creators = cRes?.data?.list || [];
     const txns = tRes?.data?.list || [];
