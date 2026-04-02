@@ -15,7 +15,7 @@ export default function Dashboard() {
   if (!D.length) return <div className="text-[#78716c] text-center py-20">Loading dashboard...</div>;
 
   const active = getActiveCreators(D);
-  const tRun = active.reduce((a, c) => a + c.run, 0);
+  const tRun = D.reduce((a, c) => a + c.run, 0); // All creators for total
   const tGoal = active.reduce((a, c) => a + c.goal, 0);
   const tp = pct(tRun, tGoal);
   const dt = getDailyTotals(D);

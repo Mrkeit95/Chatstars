@@ -27,11 +27,11 @@ export default function RevenuePage() {
   if (!D.length) return <div className="text-[#78716c] text-center py-20">Loading {tab === "current" ? currentMonth : tab} data...</div>;
 
   const active = getActiveCreators(D);
-  const tRun = active.reduce((a,c) => a+c.run, 0);
+  const tRun = D.reduce((a,c) => a+c.run, 0); // Include all for total revenue
   const tGoal = active.reduce((a,c) => a+c.goal, 0);
-  const tFeb = active.reduce((a,c) => a+c.feb, 0);
-  const tJan = active.reduce((a,c) => a+c.jan, 0);
-  const tDec = active.reduce((a,c) => a+c.dec, 0);
+  const tFeb = D.reduce((a,c) => a+c.feb, 0);
+  const tJan = D.reduce((a,c) => a+c.jan, 0);
+  const tDec = D.reduce((a,c) => a+c.dec, 0);
   const dt = getDailyTotals(D);
   const boards = getBoards(D);
   const activeDays = dt.filter(v => v > 0).length;

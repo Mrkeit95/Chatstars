@@ -22,7 +22,7 @@ export default function CreatorPanel({ creator, onClose }: { creator: Creator|nu
         <div className="p-7">
           <p className="text-xs text-[#78716c] mb-5">{c.ag || "N/A"} · {c.b || "Unassigned"} · <span style={{color: c.ac ? "#4ade80" : "#f87171"}}>{c.ac ? "Active" : "Inactive"}</span></p>
           <div className="grid grid-cols-3 gap-2.5 mb-5">
-            {[["March Running", fmt(c.run), "#4ade80"], ["Goal", fmt(c.goal), ""], ["% to Goal", ptg + "%", colorFor(ptg)],
+            {[[`${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][new Date().getMonth()]} Running`, fmt(c.run), "#4ade80"], ["Goal", fmt(c.goal), ""], ["% to Goal", ptg + "%", colorFor(ptg)],
               ["February", fmt(c.feb), ""], ["January", fmt(c.jan), ""], ["December", fmt(c.dec), ""],
               ["Projection", fmt(c.proj), ""], ["Avg/Day", fmtFull(avg), ""], ["Tips & Msgs", fmt(c.tip), ""]
             ].map(([label, val, color], i) => (
