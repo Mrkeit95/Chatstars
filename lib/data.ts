@@ -101,15 +101,11 @@ export function parseSheetCSV(csv: string): Creator[] {
     if (r.length < 5) continue;
     const nameVal = (r[cTeams >= 0 ? cTeams : cName >= 0 ? cName : 0] || "").trim();
     if (!nameVal || nameVal.length < 2) continue;
-    // Skip ONLY clear section headers
-    if (/^(TOTALS?|GRAND|SUM|BOARD \d|BOARD\d|TRAINING BOARD|TEAMS)$/i.test(nameVal)) continue;
-    // Skip agency summary block (@ column = "COUNT" or a number, AND no Active TRUE/FALSE)
-    const atVal = (r[cAt >= 0 ? cAt : 3] || "").trim();
+    // Skip section headers, totals, and agency summary rows
+    if (/^(TOTALS?|GRAND|SUM|BOARD \d+|BOARD\d+|TRAINING BOARD|TEAMS|AGENCIES|COUNT)$/i.test(nameVal)) continue;
+    // Every real creator has TRUE or FALSE in Active — agency summary rows don't
     const activeVal = cActive >= 0 ? (r[cActive] || "").trim().toUpperCase() : "";
-    if (atVal === "COUNT") continue;
-    if (nameVal.toUpperCase() === "AGENCIES") continue;
-    if (/^\d+$/.test(atVal) && activeVal !== "TRUE" && activeVal !== "FALSE") continue;
-    if (!atVal && !activeVal && !r.slice(6).some(c => c && c.trim() && c !== "$0.00" && c !== "0")) continue;
+    if (cActive >= 0 && activeVal !== "TRUE" && activeVal !== "FALSE") continue;
 
     // Daily data
     const dy: number[] = [];
